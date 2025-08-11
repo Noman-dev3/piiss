@@ -46,14 +46,14 @@ function TeachersPage() {
             <Card>
                 <CardHeader>
                     <CardTitle>Upload Teacher Data</CardTitle>
-                    <CardDescription>Upload a CSV file to add or update the teacher list. This will use 'id' as the unique key and will overwrite all existing teacher data.</CardDescription>
+                    <CardDescription>Upload a CSV file to add or update the teacher list. This will use 'Teacher_ID' as the unique key and will overwrite all existing teacher data.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <Alert>
                         <Info className="h-4 w-4" />
                         <AlertTitle>CSV Format</AlertTitle>
                         <AlertDescription>
-                            The CSV file must contain the following columns: `id`, `name`, `role`, `subject`, `department`, `experience`, `qualification`, `imageUrl`, `bio`.
+                            The CSV file must contain the following columns: `Name`, `Teacher_ID`, `Contact`, `Salary`, `Photo_Path`, `Date_Joined`.
                         </AlertDescription>
                     </Alert>
                     <form action={handleFileUpload} className="space-y-4">
@@ -77,21 +77,21 @@ function TeachersPage() {
                     <Table>
                         <TableHeader>
                             <TableRow>
+                                <TableHead>Teacher ID</TableHead>
                                 <TableHead>Name</TableHead>
-                                <TableHead>Subject</TableHead>
-                                <TableHead>Role</TableHead>
-                                <TableHead>Experience</TableHead>
-                                <TableHead>Qualification</TableHead>
+                                <TableHead>Contact</TableHead>
+                                <TableHead>Salary</TableHead>
+                                <TableHead>Date Joined</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {teachers.length > 0 ? teachers.map(teacher => (
-                                <TableRow key={teacher.id}>
+                                <TableRow key={teacher.teacherId}>
+                                    <TableCell>{teacher.teacherId}</TableCell>
                                     <TableCell>{teacher.name}</TableCell>
-                                    <TableCell>{teacher.subject}</TableCell>
-                                    <TableCell>{teacher.role}</TableCell>
-                                    <TableCell>{teacher.experience}</TableCell>
-                                    <TableCell>{teacher.qualification}</TableCell>
+                                    <TableCell>{teacher.contact}</TableCell>
+                                    <TableCell>{teacher.salary}</TableCell>
+                                    <TableCell>{teacher.dateJoined}</TableCell>
                                 </TableRow>
                             )) : (
                                 <TableRow>

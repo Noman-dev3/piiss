@@ -6,7 +6,7 @@ import { getRawData, getStudents } from './data-loader';
 import { db } from './firebase';
 import { ref, push, serverTimestamp, set, child, get } from 'firebase/database';
 import Papa from 'papaparse';
-import type { Student, ReportCard } from '@/types';
+import type { Student, ReportCard, Teacher } from '@/types';
 
 const contactSchema = z.object({
   firstName: z.string().min(2, { message: "First name must be at least 2 characters." }),
@@ -144,7 +144,7 @@ const parseCsv = <T>(file: File): Promise<T[]> => {
     });
 }
 
-const fileToAction = async (formData: FormData, dbPath: string, idKey: string): Promise<UploadResult> => {
+const fileToAction = async (formData: FormData, dbPath: string, idKey: string, keyMapping?: Record<string, string>): Promise<UploadResult> => {
     const file = formData.get('file') as File;
     if (!file || file.size === 0) {
         return { success: false, message: 'No file provided.' };
@@ -157,15 +157,26 @@ const fileToAction = async (formData: FormData, dbPath: string, idKey: string): 
              const fileContent = await file.text();
              const parsedData = JSON.parse(fileContent);
              parsedData.forEach((item: any) => {
-                if (item[idKey]) {
-                    dataToUpload[item[idKey]] = item;
+                const id = item[idKey];
+                if (id) {
+                    dataToUpload[id] = item;
                 }
              });
         } else {
             const parsedData = await parseCsv<any>(file);
             parsedData.forEach((item: any) => {
-                if (item[idKey]) {
-                    dataToUpload[item[idKey]] = item;
+                const id = item[idKey];
+                if (id) {
+                    if (keyMapping) {
+                        const newItem: Record<string, any> = {};
+                        for (const oldKey in item) {
+                            const newKey = keyMapping[oldKey] || oldKey;
+                            newItem[newKey] = item[oldKey];
+                        }
+                        dataToUpload[id] = newItem;
+                    } else {
+                       dataToUpload[id] = item;
+                    }
                 }
             });
         }
@@ -185,11 +196,27 @@ const fileToAction = async (formData: FormData, dbPath: string, idKey: string): 
 };
 
 export async function uploadTeachersCsv(formData: FormData): Promise<UploadResult> {
-    return fileToAction(formData, 'teachers', 'id');
+    const keyMapping = {
+        'Name': 'name',
+        'Teacher_ID': 'teacherId',
+        'Contact': 'contact',
+        'Salary': 'salary',
+        'Photo_Path': 'photoPath',
+        'Date_Joined': 'dateJoined'
+    };
+    return fileToAction(formData, 'teachers', 'Teacher_ID', keyMapping);
 }
 
 export async function uploadStudentsCsv(formData: FormData): Promise<UploadResult> {
-    return fileToAction(formData, 'students', 'Roll_Number');
+    const keyMapping = {
+        'Name': 'name',
+        'Roll_Number': 'rollNumber',
+        'Class': 'class',
+        'Gender': 'gender',
+        'Contact': 'contact',
+        'Address': 'address'
+    };
+    return fileToAction(formData, 'students', 'Roll_Number', keyMapping);
 }
 
 export async function uploadResultsJson(formData: FormData): Promise<UploadResult> {
@@ -206,16 +233,18 @@ export async function uploadResultsJson(formData: FormData): Promise<UploadResul
             return { success: false, message: 'JSON file should contain an array of result objects.' };
         }
         
-        const students = await getStudents();
-        const studentMapByRollNo = new Map(students.map(s => [s.rollNumber, s.id]));
-
+        const studentsRef = ref(db, 'students');
+        const studentsSnap = await get(studentsRef);
+        const studentsData = studentsSnap.val() || {};
+        
         for (const result of resultsData) {
             if (!result.roll_number) {
                 console.warn('Skipping result without roll_number:', result);
                 continue;
             }
             const studentId = result.roll_number;
-            if (studentMapByRollNo.has(studentId)) {
+            // Check if student with this roll number exists
+            if (studentsData[studentId]) {
                 const resultsRef = ref(db, `students/${studentId}/results`);
                 await push(resultsRef, result);
             } else {

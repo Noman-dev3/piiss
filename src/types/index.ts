@@ -1,37 +1,38 @@
 export interface Teacher {
-  id: string;
+  teacherId: string;
   name: string;
-  role: string;
-  subject: string;
-  department: string;
-  experience: string;
-  qualification: string;
-  imageUrl: string;
-  bio: string;
+  contact: string;
+  salary: string;
+  photoPath: string;
+  dateJoined: string;
 }
 
 export interface Student {
-  id: string;
+  id: string; // The key from Firebase
   name: string;
   rollNumber: string;
   class: string;
   gender: string;
   contact?: string;
   address?: string;
+  results?: Record<string, ReportCard>; // To hold nested results
 }
 
 export interface ReportCard {
-  id: string;
-  student_name: string;
+  id: string; // The key from Firebase
   roll_number: string;
-  class: string;
-  session: string;
-  subjects: Record<string, number>;
-  total_marks: number;
-  max_marks: number;
-  percentage: number;
-  grade: string;
-  date_created: string;
+  term: string;
+  year: number;
+  grades: Record<string, string>;
+  attendance: string;
+  teacher_remarks: string;
+  session?: string;
+  subjects?: Record<string, number>;
+  total_marks?: number;
+  max_marks?: number;
+  percentage?: number;
+  grade?: string;
+  date_created?: string;
 }
 
 export interface News {
