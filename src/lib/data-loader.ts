@@ -40,7 +40,7 @@ async function fetchSingleItem<T>(path: string, id: string): Promise<T | null> {
 
 export const getTeachers = async () => fetchData<Teacher>('teachers');
 export const getStudents = async () => fetchData<Student>('students');
-export const getReportCards = async () => fetchData<ReportCard>('report-cards');
+export const getReportCards = async (studentId: string) => fetchData<ReportCard>(`students/${studentId}/results`);
 export const getNews = async () => fetchData<News>('news');
 export const getGalleryImages = async () => fetchData<GalleryImage>('gallery');
 export const getAnnouncements = async () => fetchData<Announcement>('announcements');

@@ -13,17 +13,23 @@ import { getStudents, getReportCards } from "@/lib/data-loader";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { FileUp, Info } from "lucide-react";
 
+type StudentWithReportCount = Student & { reportCount: number };
+
 function StudentsPage() {
     const { toast } = useToast();
     const [isPending, startTransition] = useTransition();
 
-    const [students, setStudents] = useState<Student[]>([]);
-    const [reportCards, setReportCards] = useState<ReportCard[]>([]);
-
+    const [students, setStudents] = useState<StudentWithReportCount[]>([]);
+    
     const fetchStudentsAndReports = async () => {
-        const [studentsData, reportsData] = await Promise.all([getStudents(), getReportCards()]);
-        setStudents(studentsData);
-        setReportCards(reportsData);
+        const studentsData = await getStudents();
+        const studentsWithCounts = await Promise.all(
+            studentsData.map(async (student) => {
+                const reports = await getReportCards(student.id);
+                return { ...student, reportCount: reports.length };
+            })
+        );
+        setStudents(studentsWithCounts);
     };
 
     useEffect(() => {
@@ -61,14 +67,14 @@ function StudentsPage() {
                 <Card>
                     <CardHeader>
                         <CardTitle>Upload Students</CardTitle>
-                        <CardDescription>Upload a CSV file to add or update student data.</CardDescription>
+                        <CardDescription>Upload a CSV file to add or update student data. The file must include an 'id' column.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <Alert>
                             <Info className="h-4 w-4" />
                             <AlertTitle>CSV Format</AlertTitle>
                             <AlertDescription>
-                                Required columns: `rollNo`, `name`, `class`, `section`.
+                                Required columns: `id`, `rollNo`, `name`, `class`, `section`.
                             </AlertDescription>
                         </Alert>
                         <form action={handleStudentsUpload} className="space-y-4">
@@ -87,14 +93,14 @@ function StudentsPage() {
                 <Card>
                     <CardHeader>
                         <CardTitle>Upload Results</CardTitle>
-                        <CardDescription>Upload a JSON file to add or update report cards.</CardDescription>
+                        <CardDescription>Upload a JSON file to add new report cards for existing students.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <Alert>
                              <Info className="h-4 w-4" />
                             <AlertTitle>JSON Format</AlertTitle>
                             <AlertDescription>
-                                Should be an array of report card objects.
+                                Should be an array of result objects. Each object must have a `rollNo` that matches an existing student.
                             </AlertDescription>
                         </Alert>
                         <form action={handleResultsUpload} className="space-y-4">
@@ -122,7 +128,7 @@ function StudentsPage() {
                                 <TableHead>Roll No</TableHead>
                                 <TableHead>Name</TableHead>
                                 <TableHead>Class</TableHead>
-                                <TableHead>Result Loaded</TableHead>
+                                <TableHead>Results Loaded</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -132,7 +138,7 @@ function StudentsPage() {
                                     <TableCell>{student.name}</TableCell>
                                     <TableCell>{student.class} - {student.section}</TableCell>
                                     <TableCell>
-                                        {reportCards.some(r => r.rollNo === parseInt(student.rollNo)) ? 'Yes' : 'No'}
+                                        {student.reportCount > 0 ? `${student.reportCount} report(s)` : 'No'}
                                     </TableCell>
                                 </TableRow>
                             )) : (

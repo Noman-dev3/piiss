@@ -2,10 +2,11 @@
 
 import { z } from 'zod';
 import { smartSearch } from '@/ai/flows/smart-search';
-import { getRawData } from './data-loader';
+import { getRawData, getStudents } from './data-loader';
 import { db } from './firebase';
-import { ref, push, serverTimestamp, set } from 'firebase/database';
+import { ref, push, serverTimestamp, set, child, get } from 'firebase/database';
 import Papa from 'papaparse';
+import type { Student } from '@/types';
 
 const contactSchema = z.object({
   firstName: z.string().min(2, { message: "First name must be at least 2 characters." }),
@@ -150,22 +151,31 @@ const fileToAction = async (formData: FormData, dbPath: string): Promise<UploadR
     }
 
     try {
-        const fileContent = await file.text();
-        let dataToUpload;
+        let dataToUpload: Record<string, any> = {};
         
         if (file.type === 'application/json') {
-             dataToUpload = JSON.parse(fileContent);
+             const fileContent = await file.text();
+             const parsedData = JSON.parse(fileContent);
+             // Assuming parsedData is an array of objects with an 'id'
+             parsedData.forEach((item: any) => {
+                if (item.id) {
+                    dataToUpload[item.id] = item;
+                }
+             });
         } else {
             const parsedData = await parseCsv<any>(file);
             // Convert array to object with IDs as keys, as Firebase prefers
-            dataToUpload = parsedData.reduce((acc, item) => {
+            parsedData.forEach((item: any) => {
                 if (item.id) {
-                    acc[item.id] = item;
+                    dataToUpload[item.id] = item;
                 }
-                return acc;
-            }, {});
+            });
         }
         
+        if (Object.keys(dataToUpload).length === 0) {
+            return { success: false, message: 'CSV/JSON must contain an "id" column/property for each entry.' };
+        }
+
         const dbRef = ref(db, dbPath);
         await set(dbRef, dataToUpload);
 
@@ -185,19 +195,37 @@ export async function uploadStudentsCsv(formData: FormData): Promise<UploadResul
 }
 
 export async function uploadResultsJson(formData: FormData): Promise<UploadResult> {
-     const file = formData.get('file') as File;
+    const file = formData.get('file') as File;
     if (!file || file.size === 0) {
         return { success: false, message: 'No file provided.' };
     }
 
     try {
         const fileContent = await file.text();
-        const dataToUpload = JSON.parse(fileContent);
-        
-        const dbRef = ref(db, 'report-cards');
-        await set(dbRef, dataToUpload);
+        const resultsData = JSON.parse(fileContent);
 
-        return { success: true, message: 'Results uploaded successfully!' };
+        if (!Array.isArray(resultsData)) {
+            return { success: false, message: 'JSON file should contain an array of result objects.' };
+        }
+        
+        const students = await getStudents();
+        const studentMapByRollNo = new Map(students.map(s => [s.rollNo, s.id]));
+
+        for (const result of resultsData) {
+            if (!result.rollNo) {
+                console.warn('Skipping result without rollNo:', result);
+                continue;
+            }
+            const studentId = studentMapByRollNo.get(result.rollNo.toString());
+            if (studentId) {
+                const resultsRef = ref(db, `students/${studentId}/results`);
+                await push(resultsRef, result);
+            } else {
+                console.warn(`No student found for roll number: ${result.rollNo}`);
+            }
+        }
+
+        return { success: true, message: 'Results uploaded and linked to students successfully!' };
     } catch (error: any) {
         console.error(`Error uploading results:`, error);
         return { success: false, message: error.message || 'An error occurred during upload.' };

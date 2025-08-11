@@ -1,5 +1,6 @@
 export interface Teacher {
   id: string;
+  bio: string;
   name: string;
   role: string;
   subject: string;
@@ -14,9 +15,11 @@ export interface Student {
   name: string;
   class: string;
   section: string;
+  id: string;
 }
 
 export interface ReportCard {
+  id: string; // Added to uniquely identify a report card
   rollNo: number;
   term: string;
   year: number;
