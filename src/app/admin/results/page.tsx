@@ -50,14 +50,14 @@ function ResultsPage() {
             <Card>
                 <CardHeader>
                     <CardTitle>Upload Results</CardTitle>
-                    <CardDescription>Upload a JSON file to add new report cards for existing students. The file should be an object where keys are student roll numbers.</CardDescription>
+                    <CardDescription>Upload a JSON file to add new report cards for existing students. The file should be an array of result objects.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <Alert>
                          <Info className="h-4 w-4" />
                         <AlertTitle>JSON Format</AlertTitle>
                         <AlertDescription>
-                            Should be an object of result objects. Each key must be a `roll_number` that matches an existing student.
+                            The JSON file must be an array of objects, each containing a `roll_number` that matches an existing student.
                         </AlertDescription>
                     </Alert>
                     <form action={handleResultsUpload} className="space-y-4">
@@ -84,9 +84,8 @@ function ResultsPage() {
                             <TableRow>
                                 <TableHead>Roll No</TableHead>
                                 <TableHead>Student Name</TableHead>
-                                <TableHead>Term</TableHead>
-                                <TableHead>Year</TableHead>
                                 <TableHead>Session</TableHead>
+                                <TableHead>Grade</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -94,9 +93,8 @@ function ResultsPage() {
                                 <TableRow key={report.id}>
                                     <TableCell>{report.studentRollNo}</TableCell>
                                     <TableCell>{report.studentName}</TableCell>
-                                    <TableCell>{report.term}</TableCell>
-                                    <TableCell>{report.year}</TableCell>
                                     <TableCell>{report.session}</TableCell>
+                                    <TableCell>{report.grade}</TableCell>
                                 </TableRow>
                             )) : (
                                 <TableRow>

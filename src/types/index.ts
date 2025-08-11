@@ -32,10 +32,7 @@ export interface ReportCard {
   id: string; // The key from Firebase
   roll_number: string;
   term: string;
-  year: number;
-  grades: Record<string, string>;
-  attendance: string;
-  teacher_remarks: string;
+  year?: number;
   session?: string;
   subjects?: Record<string, number>;
   total_marks?: number;
@@ -43,6 +40,9 @@ export interface ReportCard {
   percentage?: number;
   grade?: string;
   date_created?: string;
+  grades?: Record<string, string>;
+  attendance?: string;
+  teacher_remarks?: string;
 }
 
 export interface News {
