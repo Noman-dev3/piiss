@@ -23,56 +23,58 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
 
     return (
         <SidebarProvider>
-            <Sidebar>
-                <SidebarHeader>
-                    <Logo isAdmin={true}/>
-                </SidebarHeader>
-                <SidebarContent>
-                    <SidebarMenu>
-                        {menuItems.map((item) => (
-                             <SidebarMenuItem key={item.href}>
-                                <Link href={item.href} className="w-full">
-                                    <SidebarMenuButton 
-                                        isActive={pathname.startsWith(item.href)}
-                                        tooltip={item.label}
-                                    >
-                                        {item.icon}
-                                        <span>{item.label}</span>
-                                    </SidebarMenuButton>
-                                </Link>
+            <div className="flex min-h-screen">
+                <Sidebar>
+                    <SidebarHeader>
+                        <Logo isAdmin={true}/>
+                    </SidebarHeader>
+                    <SidebarContent>
+                        <SidebarMenu>
+                            {menuItems.map((item) => (
+                                 <SidebarMenuItem key={item.href}>
+                                    <Link href={item.href} className="w-full">
+                                        <SidebarMenuButton 
+                                            isActive={pathname.startsWith(item.href)}
+                                            tooltip={item.label}
+                                        >
+                                            {item.icon}
+                                            <span>{item.label}</span>
+                                        </SidebarMenuButton>
+                                    </Link>
+                                </SidebarMenuItem>
+                            ))}
+                        </SidebarMenu>
+                    </SidebarContent>
+                    <SidebarFooter>
+                        <SidebarMenu>
+                             <SidebarMenuItem>
+                                <SidebarMenuButton onClick={logout}>
+                                    <LogOut />
+                                    <span>Logout</span>
+                                </SidebarMenuButton>
                             </SidebarMenuItem>
-                        ))}
-                    </SidebarMenu>
-                </SidebarContent>
-                <SidebarFooter>
-                    <SidebarMenu>
-                         <SidebarMenuItem>
-                            <SidebarMenuButton onClick={logout}>
-                                <LogOut />
-                                <span>Logout</span>
-                            </SidebarMenuButton>
-                        </SidebarMenuItem>
-                    </SidebarMenu>
-                </SidebarFooter>
-            </Sidebar>
-            <main className="flex-1 bg-muted/40 overflow-y-auto">
-                <div className="border-b bg-background sticky top-0 z-10">
-                    <div className="flex h-16 items-center px-4 sm:px-8">
-                        <div className="flex items-center gap-2">
-                            <SidebarTrigger className="md:hidden" />
-                             <h1 className="text-xl font-semibold tracking-tight hidden md:block">
-                                {menuItems.find(item => pathname.startsWith(item.href))?.label || 'Admin'}
-                            </h1>
-                        </div>
-                        <div className="ml-auto flex items-center space-x-4">
-                            <UserNav />
+                        </SidebarMenu>
+                    </SidebarFooter>
+                </Sidebar>
+                <main className="flex-1 bg-muted/40 overflow-y-auto">
+                    <div className="border-b bg-background sticky top-0 z-10">
+                        <div className="flex h-16 items-center px-4 sm:px-8">
+                            <div className="flex items-center gap-2">
+                                <SidebarTrigger className="md:hidden" />
+                                 <h1 className="text-xl font-semibold tracking-tight hidden md:block">
+                                    {menuItems.find(item => pathname.startsWith(item.href))?.label || 'Admin'}
+                                </h1>
+                            </div>
+                            <div className="ml-auto flex items-center space-x-4">
+                                <UserNav />
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div className="space-y-6 p-4 sm:p-8 pt-6">
-                    {children}
-                </div>
-            </main>
+                    <div className="space-y-6 p-4 sm:p-8 pt-6">
+                        {children}
+                    </div>
+                </main>
+            </div>
       </SidebarProvider>
     );
 }
