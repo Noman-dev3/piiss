@@ -1,7 +1,8 @@
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles, GraduationCap, Users, Trophy, BookOpen, ChevronRight } from 'lucide-react';
+import { Sparkles, GraduationCap, Users, Trophy, BookOpen } from 'lucide-react';
+import { getSiteSettings } from '@/lib/data-loader';
 
 const StatCard = ({ icon, label }: { icon: React.ReactNode, label: string }) => (
     <div className="glassmorphic rounded-2xl p-4 flex flex-col items-center justify-center text-center gap-2 text-white/80">
@@ -10,9 +11,11 @@ const StatCard = ({ icon, label }: { icon: React.ReactNode, label: string }) => 
     </div>
 )
 
-export function HeroSection() {
+export async function HeroSection() {
+  const settings = await getSiteSettings();
+
   return (
-    <section className="relative bg-gradient-to-br from-primary via-purple-600 to-indigo-700 text-white overflow-hidden">
+    <section className="relative bg-gradient-to-br from-primary via-blue-800 to-indigo-900 text-white overflow-hidden">
         <div className="absolute -top-20 -left-20 w-80 h-80 bg-white/10 rounded-full opacity-50 glow"></div>
         <div className="absolute -bottom-20 -right-10 w-96 h-96 bg-white/10 rounded-full opacity-50 glow delay-1000"></div>
       
@@ -24,15 +27,15 @@ export function HeroSection() {
             </Badge>
 
             <h1 className="text-4xl md:text-7xl font-extrabold tracking-tight drop-shadow-lg">
-              Greenfield
+              {settings.siteName.split(' ')[0]}
               <br />
-              <span className='text-accent'>International School</span>
+              <span className='text-accent'>{settings.siteName.split(' ').slice(1).join(' ')}</span>
             </h1>
             <p className="mt-6 text-lg md:text-xl max-w-3xl text-white/80">
-              Nurturing young minds for a brighter future with world-class education and holistic development.
+              {settings.tagline}
             </p>
             <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
-              <Button asChild size="lg" className="rounded-full bg-white/90 text-primary hover:bg-white font-semibold shadow-lg">
+              <Button asChild size="lg" className="rounded-full bg-accent text-accent-foreground hover:bg-accent/90 font-semibold shadow-lg">
                 <Link href="/admissions">Explore Programs</Link>
               </Button>
               <Button asChild size="lg" variant="outline" className="rounded-full text-white hover:bg-white/10 bg-transparent border-white/50">

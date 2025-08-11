@@ -68,7 +68,7 @@ export default function ResultsPage() {
     if (foundStudent && foundStudent.results) {
         const report = Object.values(foundStudent.results).find(r => r.session === session);
         if (report) {
-            setSearchResult({ student: foundStudent, report });
+            setSearchResult({ student: foundStudent, report: { ...report, id: Object.keys(foundStudent.results).find(key => foundStudent.results![key].session === session)! } });
         } else {
             setSearchResult('not_found');
         }
@@ -92,6 +92,7 @@ export default function ResultsPage() {
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="flex-grow"
+                        aria-label="Student Roll Number"
                     />
                     <Button type="submit">
                         <Search className="mr-2 h-4 w-4" /> Search
@@ -99,9 +100,9 @@ export default function ResultsPage() {
                 </form>
                  {foundStudent && availableSessions.length > 0 && (
                     <div className="space-y-2">
-                        <label className="text-sm font-medium">Select Session</label>
+                        <label className="text-sm font-medium" htmlFor="session-select">Select Session</label>
                         <Select onValueChange={handleSessionSelect} value={selectedSession || ''}>
-                            <SelectTrigger>
+                            <SelectTrigger id="session-select">
                                 <SelectValue placeholder="Select an academic session to view results" />
                             </SelectTrigger>
                             <SelectContent>

@@ -1,5 +1,6 @@
 
 import { ContactForm } from "@/components/ContactForm";
+import { getSiteSettings } from "@/lib/data-loader";
 import { Mail, Phone, MapPin } from "lucide-react";
 
 function PageHeader() {
@@ -15,7 +16,9 @@ function PageHeader() {
   );
 }
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const settings = await getSiteSettings();
+  
   return (
     <>
         <PageHeader />
@@ -33,7 +36,7 @@ export default function ContactPage() {
                             </div>
                             <div>
                                 <h3 className="font-semibold">Address</h3>
-                                <p className="text-muted-foreground">Pakistan</p>
+                                <p className="text-muted-foreground">{settings.address}</p>
                             </div>
                         </div>
                          <div className="flex items-start gap-4">
@@ -42,7 +45,7 @@ export default function ContactPage() {
                             </div>
                             <div>
                                 <h3 className="font-semibold">Phone</h3>
-                                <p className="text-muted-foreground">+92-000-0000000</p>
+                                <p className="text-muted-foreground">{settings.phone}</p>
                             </div>
                         </div>
                          <div className="flex items-start gap-4">

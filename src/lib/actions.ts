@@ -204,6 +204,8 @@ const fileToAction = async (formData: FormData, dbPath: string, idKey: string, k
         const dbRef = ref(db);
         await update(dbRef, updates);
 
+        revalidatePath(`/admin/${dbPath}`);
+
         return { success: true, message: 'Data uploaded successfully!' };
     } catch (error: any) {
         console.error(`Error uploading to ${dbPath}:`, error);
@@ -302,7 +304,7 @@ export async function uploadResultsJson(formData: FormData): Promise<UploadResul
         if (newResultsCount === 0 && skippedResultsCount === 0) {
             message = 'No new results to upload or no matching students found.';
         }
-
+        revalidatePath('/admin/results');
         return { success: true, message: message.trim() };
 
     } catch (error: any) {
@@ -350,6 +352,7 @@ export async function updateReportCard(values: z.infer<typeof updateReportCardSc
             subjects: subjectsAsObject,
         });
 
+        revalidatePath('/admin/results');
         return { success: true, message: 'Report card updated successfully.' };
     } catch (error: any) {
         console.error('Error updating report card:', error);
@@ -438,10 +441,9 @@ const handleNewsArticle = async (formData: FormData, isUpdate: boolean): Promise
         
         if (isUpdate && id) {
              const articleRef = ref(db, `news/${id}`);
-             // Only update imageUrl if a new one was uploaded
              const updateData: Partial<typeof articleData> = {...articleData};
-             if (!imageUrl) {
-                delete (updateData as any).imageUrl;
+             if (imageUrl) {
+                updateData.imageUrl = imageUrl;
              }
              await update(articleRef, updateData);
         } else {
