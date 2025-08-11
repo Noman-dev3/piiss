@@ -6,34 +6,25 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { uploadStudentsCsv, uploadResultsJson } from "@/lib/actions";
-import type { Student } from "@/types";
+import { uploadStudentsCsv } from "@/lib/actions";
+import type { StudentWithReportCount } from "@/types";
 import { useEffect, useState, useTransition } from "react";
-import { getStudents, getReportCards } from "@/lib/data-loader";
+import { getStudentsWithReportCounts } from "@/lib/data-loader";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { FileUp, Info } from "lucide-react";
-
-type StudentWithReportCount = Student & { reportCount: number };
 
 function StudentsPage() {
     const { toast } = useToast();
     const [isPending, startTransition] = useTransition();
-
     const [students, setStudents] = useState<StudentWithReportCount[]>([]);
-    
-    const fetchStudentsAndReports = async () => {
-        const studentsData = await getStudents();
-        const studentsWithCounts = await Promise.all(
-            studentsData.map(async (student) => {
-                const reports = await getReportCards(student.rollNumber);
-                return { ...student, reportCount: reports.length };
-            })
-        );
-        setStudents(studentsWithCounts);
+
+    const fetchStudents = async () => {
+        const studentsData = await getStudentsWithReportCounts();
+        setStudents(studentsData);
     };
 
     useEffect(() => {
-        fetchStudentsAndReports();
+        fetchStudents();
     }, []);
 
     const handleStudentsUpload = (formData: FormData) => {
@@ -41,19 +32,7 @@ function StudentsPage() {
             const result = await uploadStudentsCsv(formData);
             if (result.success) {
                 toast({ title: "Success", description: result.message });
-                await fetchStudentsAndReports();
-            } else {
-                toast({ title: "Error", description: result.message, variant: "destructive" });
-            }
-        });
-    };
-
-    const handleResultsUpload = (formData: FormData) => {
-        startTransition(async () => {
-            const result = await uploadResultsJson(formData);
-            if (result.success) {
-                toast({ title: "Success", description: result.message });
-                await fetchStudentsAndReports();
+                await fetchStudents();
             } else {
                 toast({ title: "Error", description: result.message, variant: "destructive" });
             }
@@ -62,60 +41,33 @@ function StudentsPage() {
 
     return (
         <div className="space-y-6">
-            <h2 className="text-3xl font-bold tracking-tight">Manage Students & Results</h2>
-            <div className="grid md:grid-cols-2 gap-8">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Upload Students</CardTitle>
-                        <CardDescription>Upload a CSV file to add or update student data. This will use 'Roll_Number' as the unique ID.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <Alert>
-                            <Info className="h-4 w-4" />
-                            <AlertTitle>CSV Format</AlertTitle>
-                            <AlertDescription>
-                                Required columns: `Name`, `Roll_Number`, `Class`, `Gender`, `Contact`, `Address`.
-                            </AlertDescription>
-                        </Alert>
-                        <form action={handleStudentsUpload} className="space-y-4">
-                             <div className="space-y-2">
-                                <Label htmlFor="students-csv">Student Data (.csv)</Label>
-                                <Input id="students-csv" name="file" type="file" accept=".csv" required />
-                            </div>
-                            <Button type="submit" disabled={isPending}>
-                                <FileUp className="mr-2" />
-                                {isPending ? 'Uploading...' : 'Upload Students CSV'}
-                            </Button>
-                        </form>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Upload Results</CardTitle>
-                        <CardDescription>Upload a JSON file to add new report cards for existing students.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <Alert>
-                             <Info className="h-4 w-4" />
-                            <AlertTitle>JSON Format</AlertTitle>
-                            <AlertDescription>
-                                Should be an array of result objects. Each object must have a `roll_number` that matches an existing student.
-                            </AlertDescription>
-                        </Alert>
-                        <form action={handleResultsUpload} className="space-y-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="results-json">Report Cards (.json)</Label>
-                                <Input id="results-json" name="file" type="file" accept=".json" required />
-                            </div>
-                            <Button type="submit" disabled={isPending}>
-                                <FileUp className="mr-2" />
-                                {isPending ? 'Uploading...' : 'Upload Results JSON'}
-                            </Button>
-                        </form>
-                    </CardContent>
-                </Card>
-            </div>
+            <h2 className="text-3xl font-bold tracking-tight">Manage Students</h2>
+            
+            <Card>
+                <CardHeader>
+                    <CardTitle>Upload Students</CardTitle>
+                    <CardDescription>Upload a CSV file to add or update student data. This will use 'Roll_Number' as the unique ID.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <Alert>
+                        <Info className="h-4 w-4" />
+                        <AlertTitle>CSV Format</AlertTitle>
+                        <AlertDescription>
+                            Required columns: `Name`, `Roll_Number`, `Class`, `Gender`, `Contact`, `Address`.
+                        </AlertDescription>
+                    </Alert>
+                    <form action={handleStudentsUpload} className="space-y-4">
+                         <div className="space-y-2">
+                            <Label htmlFor="students-csv">Student Data (.csv)</Label>
+                            <Input id="students-csv" name="file" type="file" accept=".csv" required />
+                        </div>
+                        <Button type="submit" disabled={isPending}>
+                            <FileUp className="mr-2" />
+                            {isPending ? 'Uploading...' : 'Upload Students CSV'}
+                        </Button>
+                    </form>
+                </CardContent>
+            </Card>
 
             <Card>
                 <CardHeader>
@@ -142,7 +94,7 @@ function StudentsPage() {
                                     <TableCell>{student.gender}</TableCell>
                                     <TableCell>{student.contact}</TableCell>
                                     <TableCell>
-                                        {student.reportCount > 0 ? `${student.reportCount} report(s)` : 'No'}
+                                        {student.reportCount > 0 ? `Yes (${student.reportCount})` : 'No'}
                                     </TableCell>
                                 </TableRow>
                             )) : (

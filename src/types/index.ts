@@ -1,22 +1,34 @@
 export interface Teacher {
+  id: string;
   teacherId: string;
   name: string;
   contact: string;
   salary: string;
   photoPath: string;
   dateJoined: string;
+  subject?: string;
+  role?: string;
+  experience?: string;
+  department?: string;
+  qualification?: string;
+  bio?: string;
+  imageUrl?: string;
 }
 
 export interface Student {
   id: string; // The key from Firebase
   name: string;
-  rollNumber: string;
+  rollNumber: string; // From CSV: Roll_Number
   class: string;
   gender: string;
   contact?: string;
   address?: string;
   results?: Record<string, ReportCard>; // To hold nested results
+  section?: string;
+  rollNo?: string;
 }
+
+export type StudentWithReportCount = Student & { reportCount: number };
 
 export interface ReportCard {
   id: string; // The key from Firebase

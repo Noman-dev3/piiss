@@ -2,7 +2,7 @@
 
 import { db } from './firebase';
 import { ref, get, child } from 'firebase/database';
-import type { Teacher, Student, ReportCard, News, GalleryImage, Announcement, Topper, Testimonial, Event, FAQ } from '@/types';
+import type { Teacher, Student, ReportCard, News, GalleryImage, Announcement, Topper, Testimonial, Event, FAQ, StudentWithReportCount } from '@/types';
 
 
 // Helper function to fetch data from a path in Realtime Database
@@ -51,6 +51,17 @@ export const getFaqs = async () => fetchData<FAQ>('faq');
 
 export const getSingleNews = async (id: string) => fetchSingleItem<News>('news', id);
 export const getSingleTeacher = async (id: string) => fetchSingleItem<Teacher>('teachers', id);
+
+export const getStudentsWithReportCounts = async (): Promise<StudentWithReportCount[]> => {
+    const students = await getStudents();
+    const studentsWithCounts = await Promise.all(
+        students.map(async (student) => {
+            const reports = await getReportCards(student.id);
+            return { ...student, reportCount: reports.length };
+        })
+    );
+    return studentsWithCounts;
+}
 
 
 // This remains for AI actions that need raw string data

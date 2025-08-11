@@ -2,7 +2,7 @@
 import { AuthProvider } from '@/hooks/use-auth';
 import { SidebarProvider, Sidebar, SidebarHeader, SidebarTrigger, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter } from '@/components/ui/sidebar';
 import { Logo } from '@/components/shared/Logo';
-import { Home, Newspaper, Users, GraduationCap, Settings, LogOut, GalleryHorizontal, FileUp, ShieldCheck } from 'lucide-react';
+import { Home, Newspaper, Users, GraduationCap, Settings, LogOut, GalleryHorizontal, FileUp, ShieldCheck, FileText } from 'lucide-react';
 import { MainNav } from './_components/main-nav';
 import { UserNav } from './_components/user-nav';
 import { usePathname } from 'next/navigation';
@@ -12,7 +12,8 @@ import { useAuth } from '@/hooks/use-auth';
 const menuItems = [
     { href: '/admin/dashboard', label: 'Dashboard', icon: <Home /> },
     { href: '/admin/teachers', label: 'Teachers', icon: <Users /> },
-    { href: '/admin/students', label: 'Students & Results', icon: <GraduationCap /> },
+    { href: '/admin/students', label: 'Students', icon: <GraduationCap /> },
+    { href: '/admin/results', label: 'Results', icon: <FileText /> },
     { href: '/admin/settings', label: 'Site Settings', icon: <Settings /> },
 ]
 
@@ -64,7 +65,7 @@ export default function AdminLayout({
                         <div className="flex items-center gap-2">
                             <SidebarTrigger className="md:hidden" />
                              <h1 className="text-xl font-semibold tracking-tight hidden md:block">
-                                {menuItems.find(item => item.href === pathname)?.label || 'Admin'}
+                                {menuItems.find(item => item.href.startsWith(pathname))?.label || 'Admin'}
                             </h1>
                         </div>
                         <div className="ml-auto flex items-center space-x-4">
