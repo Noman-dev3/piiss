@@ -1,7 +1,6 @@
 
 'use client';
 import { useQuill } from 'react-quilljs';
-import Quill from 'quill';
 import 'quill/dist/quill.snow.css';
 import { useEffect } from 'react';
 
@@ -33,12 +32,6 @@ export default function RichTextEditor({ value, onChange }: RichTextEditorProps)
     formats,
     theme: 'snow'
   });
-
-  // Manually register the list format once.
-  useEffect(() => {
-    const list = Quill.import('formats/list');
-    Quill.register(list, true);
-  }, []);
 
   // Load initial content
   useEffect(() => {

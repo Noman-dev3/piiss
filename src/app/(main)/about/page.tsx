@@ -63,8 +63,8 @@ export default async function AboutPage() {
       <section className="py-16 md:py-24 bg-card">
         <div className="container mx-auto max-w-7xl px-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {settings.missionVision.map((feature) => (
-                <Card key={feature.title} className="text-center shadow-lg hover:shadow-xl transition-shadow duration-300 bg-background">
+            {Array.isArray(settings.missionVision) && settings.missionVision.map((feature, index) => (
+                <Card key={feature.title || index} className="text-center shadow-lg hover:shadow-xl transition-shadow duration-300 bg-background">
                 <CardHeader>
                     <div className="mx-auto bg-accent/10 p-4 rounded-full w-fit mb-4">
                         {iconMap[feature.icon as keyof typeof iconMap] || iconMap.Default}

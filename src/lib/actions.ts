@@ -1,3 +1,4 @@
+
 'use server';
 
 import { z } from 'zod';
@@ -554,11 +555,16 @@ const eventSchema = z.object({
     title: z.string().min(1, "Title is required."),
     date: z.string().min(1, "Date is required."),
     description: z.string().min(1, "Description is required."),
-    imageUrl: z.instanceof(File).refine(file => file.size > 0, { message: "Image is required." }),
+    imageFile: z.instanceof(File).refine(file => file.size > 0, { message: "Image is required." }),
 });
 
 export async function createEvent(formData: FormData): Promise<UploadResult> {
-    const rawData = Object.fromEntries(formData.entries());
+    const rawData = {
+        title: formData.get('title'),
+        date: formData.get('date'),
+        description: formData.get('description'),
+        imageFile: formData.get('imageUrl'), // The form uses name="imageUrl" for the file input
+    };
     const validatedData = eventSchema.safeParse(rawData);
 
     if (!validatedData.success) {
@@ -566,14 +572,19 @@ export async function createEvent(formData: FormData): Promise<UploadResult> {
     }
 
     try {
-        const imageUrl = await uploadFile(validatedData.data.imageUrl, 'events');
+        const imageUrl = await uploadFile(validatedData.data.imageFile, 'events');
         const snapshot = await get(ref(db, 'events'));
         const data: Event[] = snapshot.val() || [];
         const nextId = data.length > 0 ? Math.max(...data.map(item => item.id || 0)) + 1 : 1;
         
-        const newEvent: Event = { id: nextId, ...validatedData.data, imageUrl };
+        const newEvent: Omit<Event, 'id'> = {
+            title: validatedData.data.title,
+            date: validatedData.data.date,
+            description: validatedData.data.description,
+            imageUrl: imageUrl
+        };
         
-        const newData = [...data, newEvent];
+        const newData = [...data, { id: nextId, ...newEvent }];
         await set(ref(db, 'events'), newData);
 
         revalidatePath('/events');
@@ -604,11 +615,16 @@ const topperSchema = z.object({
     name: z.string().min(1, "Name is required."),
     class: z.string().min(1, "Class is required."),
     percentage: z.string().min(1, "Percentage is required."),
-    imageUrl: z.instanceof(File).refine(file => file.size > 0, { message: "Image is required." }),
+    imageFile: z.instanceof(File).refine(file => file.size > 0, { message: "Image is required." }),
 });
 
 export async function createTopper(formData: FormData): Promise<UploadResult> {
-    const rawData = Object.fromEntries(formData.entries());
+    const rawData = {
+        name: formData.get('name'),
+        class: formData.get('class'),
+        percentage: formData.get('percentage'),
+        imageFile: formData.get('imageUrl'), // The form uses name="imageUrl" for the file input
+    };
     const validatedData = topperSchema.safeParse(rawData);
 
     if (!validatedData.success) {
@@ -616,13 +632,18 @@ export async function createTopper(formData: FormData): Promise<UploadResult> {
     }
 
     try {
-        const imageUrl = await uploadFile(validatedData.data.imageUrl, 'toppers');
+        const imageUrl = await uploadFile(validatedData.data.imageFile, 'toppers');
         const snapshot = await get(ref(db, 'toppers'));
         const data: Topper[] = snapshot.val() || [];
         const nextId = data.length > 0 ? Math.max(...data.map(item => item.id || 0)) + 1 : 1;
 
-        const newTopper: Topper = { id: nextId, ...validatedData.data, imageUrl };
-        const newData = [...data, newTopper];
+        const newTopper: Omit<Topper, 'id'> = {
+            name: validatedData.data.name,
+            class: validatedData.data.class,
+            percentage: validatedData.data.percentage,
+            imageUrl
+        };
+        const newData = [...data, { id: nextId, ...newTopper }];
         await set(ref(db, 'toppers'), newData);
 
         revalidatePath('/');
