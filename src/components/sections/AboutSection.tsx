@@ -1,48 +1,58 @@
-import { Award, Target, Eye } from 'lucide-react';
-import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { GraduationCap } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import Image from 'next/image';
 
-const features = [
-  {
-    icon: <Target className="h-8 w-8 text-accent" />,
-    title: 'Our Mission',
-    description: 'To foster a dynamic learning environment that challenges students to achieve their full potential and become compassionate, responsible global citizens.',
-  },
-  {
-    icon: <Eye className="h-8 w-8 text-accent" />,
-    title: 'Our Vision',
-    description: 'To be a leading educational institution recognized for innovation, academic excellence, and the holistic development of every student.',
-  },
-  {
-    icon: <Award className="h-8 w-8 text-accent" />,
-    title: 'Our Values',
-    description: 'We are committed to integrity, respect, collaboration, and a lifelong passion for learning, creating a strong foundation for success.',
-  },
+const stats = [
+    { value: '2500+', label: 'Students', color: 'text-blue-500' },
+    { value: '150+', label: 'Teachers', color: 'text-green-500' },
+    { value: '98%', label: 'Success Rate', color: 'text-primary' },
+    { value: '35+', label: 'Years', color: 'text-orange-500' },
 ];
 
 export function AboutSection() {
   return (
-    <section id="about" className="py-16 md:py-24 bg-background">
+    <section id="about" className="py-16 md:py-32 bg-background">
       <div className="container mx-auto max-w-7xl px-4">
-        <div className="text-center space-y-4 mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-primary">
-            Welcome to PIISS
-          </h2>
-          <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-            Founded with a passion for knowledge and a commitment to student growth, PIISS stands as a beacon of modern education.
-          </p>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {features.map((feature, index) => (
-            <Card key={index} className="text-center shadow-lg hover:shadow-xl transition-shadow duration-300">
-              <CardHeader>
-                <div className="mx-auto bg-accent/10 p-4 rounded-full w-fit mb-4">
-                  {feature.icon}
+        <div className="grid md:grid-cols-2 gap-16 items-center">
+          <div className="space-y-8">
+            <Badge className="bg-primary/10 text-primary py-2 px-4 rounded-full font-semibold hover:bg-primary/20">
+              <GraduationCap className="mr-2 h-4 w-4" />
+              About Our School
+            </Badge>
+
+            <h2 className="text-4xl md:text-5xl font-bold">
+              Our <span className="text-primary">Story</span>
+            </h2>
+
+            <p className="text-muted-foreground leading-relaxed">
+              At Greenfield International School, we believe in providing quality education
+              that shapes not just academic excellence but also character development. Our
+              dedicated faculty and state-of-the-art facilities ensure that every student
+              receives the best learning experience.
+            </p>
+
+            <div className="grid grid-cols-2 gap-y-8">
+              {stats.map((stat) => (
+                <div key={stat.label}>
+                  <p className={`text-4xl font-bold ${stat.color}`}>{stat.value}</p>
+                  <p className="text-sm text-muted-foreground mt-1">{stat.label}</p>
                 </div>
-                <CardTitle>{feature.title}</CardTitle>
-                <CardDescription className="pt-2">{feature.description}</CardDescription>
-              </CardHeader>
-            </Card>
-          ))}
+              ))}
+            </div>
+          </div>
+
+          <div className="relative h-[450px] rounded-3xl overflow-hidden p-4 bg-gradient-to-br from-primary/20 to-accent/20">
+             <div className="relative h-full w-full rounded-2xl overflow-hidden shadow-2xl">
+                <Image
+                    src="https://placehold.co/600x800.png"
+                    alt="Classroom"
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                    data-ai-hint="empty classroom"
+                />
+             </div>
+          </div>
         </div>
       </div>
     </section>
