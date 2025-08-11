@@ -17,6 +17,7 @@ const transporter = nodemailer.createTransport({
 });
 
 const adminEmail = process.env.ADMIN_EMAIL || 'admin@example.com';
+const fromEmail = process.env.EMAIL_FROM_ADDRESS || `"PIISS Website" <${process.env.EMAIL_USER}>`;
 
 export async function sendContactFormEmail(data: {
   firstName: string;
@@ -31,7 +32,7 @@ export async function sendContactFormEmail(data: {
   try {
     // Email to admin
     await transporter.sendMail({
-      from: `"PIISS Website" <${process.env.EMAIL_USER}>`,
+      from: fromEmail,
       to: adminEmail,
       subject: `New Contact Form Submission: ${subject}`,
       html: `
@@ -47,7 +48,7 @@ export async function sendContactFormEmail(data: {
 
     // Confirmation email to user
     await transporter.sendMail({
-        from: `"PIISS" <${process.env.EMAIL_USER}>`,
+        from: fromEmail,
         to: email,
         subject: "We've received your message!",
         html: `
@@ -82,7 +83,7 @@ export async function sendAdmissionFormEmail(data: {
   try {
      // Email to admin
     await transporter.sendMail({
-      from: `"PIISS Website" <${process.env.EMAIL_USER}>`,
+      from: fromEmail,
       to: adminEmail,
       subject: `New Admission Application: ${applicantName}`,
       html: `
@@ -97,7 +98,7 @@ export async function sendAdmissionFormEmail(data: {
 
     // Confirmation email to user
     await transporter.sendMail({
-        from: `"PIISS Admissions" <${process.env.EMAIL_USER}>`,
+        from: fromEmail,
         to: parentEmail,
         subject: `Your Admission Application for ${applicantName} has been received!`,
         html: `
@@ -119,7 +120,7 @@ export async function sendAdmissionApprovalEmail(data: Admission) {
   const { applicantName, parentName, parentEmail, appliedClass } = data;
   try {
     await transporter.sendMail({
-        from: `"PIISS Admissions" <${process.env.EMAIL_USER}>`,
+        from: fromEmail,
         to: parentEmail,
         subject: `Congratulations! Admission for ${applicantName} has been Approved`,
         html: `
@@ -140,7 +141,7 @@ export async function sendAdmissionRejectionEmail(data: Admission) {
   const { applicantName, parentName, parentEmail, appliedClass } = data;
   try {
     await transporter.sendMail({
-        from: `"PIISS Admissions" <${process.env.EMAIL_USER}>`,
+        from: fromEmail,
         to: parentEmail,
         subject: `Update on your admission application for ${applicantName}`,
         html: `
