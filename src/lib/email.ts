@@ -16,7 +16,7 @@ const transporter = nodemailer.createTransport({
     },
 });
 
-const adminEmail = 'noman.dev3@gmail.com';
+const adminEmail = process.env.ADMIN_EMAIL || 'admin@example.com';
 
 export async function sendContactFormEmail(data: {
   firstName: string;
@@ -132,7 +132,7 @@ export async function sendAdmissionApprovalEmail(data: Admission) {
     });
   } catch (error) {
      console.error('Error sending admission approval email:', error);
-     throw new Error('Could not send approval email.');
+     // Do not throw error, just log it.
   }
 }
 
@@ -153,6 +153,6 @@ export async function sendAdmissionRejectionEmail(data: Admission) {
     });
   } catch (error) {
      console.error('Error sending admission rejection email:', error);
-     throw new Error('Could not send rejection email.');
+     // Do not throw error, just log it.
   }
 }

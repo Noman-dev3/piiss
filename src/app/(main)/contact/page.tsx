@@ -18,6 +18,7 @@ function PageHeader() {
 
 export default async function ContactPage() {
   const settings = await getSiteSettings();
+  const adminEmail = process.env.ADMIN_EMAIL || 'info@piiss.edu';
   
   return (
     <>
@@ -54,7 +55,7 @@ export default async function ContactPage() {
                             </div>
                             <div>
                                 <h3 className="font-semibold">Email</h3>
-                                <p className="text-muted-foreground">noman.dev3@gmail.com</p>
+                                <p className="text-muted-foreground">{adminEmail}</p>
                             </div>
                         </div>
                     </div>

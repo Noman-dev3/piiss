@@ -6,6 +6,7 @@ import { getSiteSettings } from '@/lib/data-loader';
 
 export async function Footer() {
   const settings = await getSiteSettings();
+  const adminEmail = process.env.ADMIN_EMAIL || 'info@piiss.edu';
 
   return (
     <footer className="border-t bg-card">
@@ -30,7 +31,7 @@ export async function Footer() {
             <h3 className="font-semibold text-primary">Contact Us</h3>
             <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
               <li>{settings.address}</li>
-              <li>noman.dev3@gmail.com</li>
+              <li>{adminEmail}</li>
               <li>{settings.phone}</li>
             </ul>
           </div>

@@ -6,7 +6,7 @@ import Image from "next/image";
 
 export async function ContactSection() {
     const settings = await getSiteSettings();
-    const adminEmail = 'noman.dev3@gmail.com';
+    const adminEmail = process.env.ADMIN_EMAIL || 'info@piiss.edu';
 
     const contactInfo = [
         {
