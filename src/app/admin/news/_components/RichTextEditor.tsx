@@ -1,7 +1,8 @@
 
 'use client';
-import ReactQuill from 'react-quilljs';
+import { useQuill } from 'react-quilljs';
 import 'quill/dist/quill.snow.css';
+import { useEffect } from 'react';
 
 interface RichTextEditorProps {
   value: string;
@@ -26,14 +27,43 @@ const formats = [
 ];
 
 export default function RichTextEditor({ value, onChange }: RichTextEditorProps) {
+  const { quill, quillRef } = useQuill({
+    modules,
+    formats,
+    theme: 'snow'
+  });
+
+  // Load initial content
+  useEffect(() => {
+    if (quill && value && quill.root.innerHTML !== value) {
+        quill.clipboard.dangerouslyPasteHTML(value);
+    }
+  }, [quill, value]);
+  
+  // Listen for changes
+  useEffect(() => {
+    if (quill) {
+      const handleChange = () => {
+        const html = quill.root.innerHTML;
+        // Avoid calling onChange if the content is just the default empty state
+        if (html !== '<p><br></p>') {
+          onChange(html);
+        } else {
+          onChange('');
+        }
+      };
+      
+      quill.on('text-change', handleChange);
+      
+      return () => {
+        quill.off('text-change', handleChange);
+      };
+    }
+  }, [quill, onChange]);
+
   return (
-    <ReactQuill 
-      theme="snow" 
-      value={value} 
-      onChange={onChange}
-      modules={modules}
-      formats={formats}
-      className="bg-background"
-    />
+    <div className="bg-background">
+      <div ref={quillRef} style={{ minHeight: '200px' }} />
+    </div>
   );
 }
