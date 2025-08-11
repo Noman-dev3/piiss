@@ -1,6 +1,5 @@
 export interface Teacher {
   id: string;
-  bio: string;
   name: string;
   role: string;
   subject: string;
@@ -8,24 +7,31 @@ export interface Teacher {
   experience: string;
   qualification: string;
   imageUrl: string;
+  bio: string;
 }
 
 export interface Student {
-  rollNo: string;
-  name: string;
-  class: string;
-  section: string;
   id: string;
+  name: string;
+  rollNumber: string;
+  class: string;
+  gender: string;
+  contact?: string;
+  address?: string;
 }
 
 export interface ReportCard {
-  id: string; // Added to uniquely identify a report card
-  rollNo: number;
-  term: string;
-  year: number;
-  grades: Record<string, string>;
-  attendance: string;
-  teacher_remarks: string;
+  id: string;
+  student_name: string;
+  roll_number: string;
+  class: string;
+  session: string;
+  subjects: Record<string, number>;
+  total_marks: number;
+  max_marks: number;
+  percentage: number;
+  grade: string;
+  date_created: string;
 }
 
 export interface News {

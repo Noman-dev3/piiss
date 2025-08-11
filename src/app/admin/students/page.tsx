@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { uploadStudentsCsv, uploadResultsJson } from "@/lib/actions";
-import type { Student, ReportCard } from "@/types";
+import type { Student } from "@/types";
 import { useEffect, useState, useTransition } from "react";
 import { getStudents, getReportCards } from "@/lib/data-loader";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -25,7 +25,7 @@ function StudentsPage() {
         const studentsData = await getStudents();
         const studentsWithCounts = await Promise.all(
             studentsData.map(async (student) => {
-                const reports = await getReportCards(student.id);
+                const reports = await getReportCards(student.rollNumber);
                 return { ...student, reportCount: reports.length };
             })
         );
@@ -67,14 +67,14 @@ function StudentsPage() {
                 <Card>
                     <CardHeader>
                         <CardTitle>Upload Students</CardTitle>
-                        <CardDescription>Upload a CSV file to add or update student data. The file must include an 'id' column.</CardDescription>
+                        <CardDescription>Upload a CSV file to add or update student data. This will use 'Roll_Number' as the unique ID.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <Alert>
                             <Info className="h-4 w-4" />
                             <AlertTitle>CSV Format</AlertTitle>
                             <AlertDescription>
-                                Required columns: `id`, `rollNo`, `name`, `class`, `section`.
+                                Required columns: `Name`, `Roll_Number`, `Class`, `Gender`, `Contact`, `Address`.
                             </AlertDescription>
                         </Alert>
                         <form action={handleStudentsUpload} className="space-y-4">
@@ -100,7 +100,7 @@ function StudentsPage() {
                              <Info className="h-4 w-4" />
                             <AlertTitle>JSON Format</AlertTitle>
                             <AlertDescription>
-                                Should be an array of result objects. Each object must have a `rollNo` that matches an existing student.
+                                Should be an array of result objects. Each object must have a `roll_number` that matches an existing student.
                             </AlertDescription>
                         </Alert>
                         <form action={handleResultsUpload} className="space-y-4">
@@ -128,22 +128,26 @@ function StudentsPage() {
                                 <TableHead>Roll No</TableHead>
                                 <TableHead>Name</TableHead>
                                 <TableHead>Class</TableHead>
+                                <TableHead>Gender</TableHead>
+                                <TableHead>Contact</TableHead>
                                 <TableHead>Results Loaded</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {students.length > 0 ? students.map(student => (
-                                <TableRow key={student.rollNo}>
-                                    <TableCell>{student.rollNo}</TableCell>
+                                <TableRow key={student.rollNumber}>
+                                    <TableCell>{student.rollNumber}</TableCell>
                                     <TableCell>{student.name}</TableCell>
-                                    <TableCell>{student.class} - {student.section}</TableCell>
+                                    <TableCell>{student.class}</TableCell>
+                                    <TableCell>{student.gender}</TableCell>
+                                    <TableCell>{student.contact}</TableCell>
                                     <TableCell>
                                         {student.reportCount > 0 ? `${student.reportCount} report(s)` : 'No'}
                                     </TableCell>
                                 </TableRow>
                             )) : (
                                 <TableRow>
-                                    <TableCell colSpan={4} className="text-center">No students found.</TableCell>
+                                    <TableCell colSpan={6} className="text-center">No students found.</TableCell>
                                 </TableRow>
                             )}
                         </TableBody>

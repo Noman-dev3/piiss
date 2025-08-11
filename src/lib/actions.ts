@@ -6,7 +6,7 @@ import { getRawData, getStudents } from './data-loader';
 import { db } from './firebase';
 import { ref, push, serverTimestamp, set, child, get } from 'firebase/database';
 import Papa from 'papaparse';
-import type { Student } from '@/types';
+import type { Student, ReportCard } from '@/types';
 
 const contactSchema = z.object({
   firstName: z.string().min(2, { message: "First name must be at least 2 characters." }),
@@ -144,7 +144,7 @@ const parseCsv = <T>(file: File): Promise<T[]> => {
     });
 }
 
-const fileToAction = async (formData: FormData, dbPath: string): Promise<UploadResult> => {
+const fileToAction = async (formData: FormData, dbPath: string, idKey: string): Promise<UploadResult> => {
     const file = formData.get('file') as File;
     if (!file || file.size === 0) {
         return { success: false, message: 'No file provided.' };
@@ -156,24 +156,22 @@ const fileToAction = async (formData: FormData, dbPath: string): Promise<UploadR
         if (file.type === 'application/json') {
              const fileContent = await file.text();
              const parsedData = JSON.parse(fileContent);
-             // Assuming parsedData is an array of objects with an 'id'
              parsedData.forEach((item: any) => {
-                if (item.id) {
-                    dataToUpload[item.id] = item;
+                if (item[idKey]) {
+                    dataToUpload[item[idKey]] = item;
                 }
              });
         } else {
             const parsedData = await parseCsv<any>(file);
-            // Convert array to object with IDs as keys, as Firebase prefers
             parsedData.forEach((item: any) => {
-                if (item.id) {
-                    dataToUpload[item.id] = item;
+                if (item[idKey]) {
+                    dataToUpload[item[idKey]] = item;
                 }
             });
         }
         
         if (Object.keys(dataToUpload).length === 0) {
-            return { success: false, message: 'CSV/JSON must contain an "id" column/property for each entry.' };
+            return { success: false, message: `CSV/JSON must contain a "${idKey}" column/property for each entry.` };
         }
 
         const dbRef = ref(db, dbPath);
@@ -187,11 +185,11 @@ const fileToAction = async (formData: FormData, dbPath: string): Promise<UploadR
 };
 
 export async function uploadTeachersCsv(formData: FormData): Promise<UploadResult> {
-    return fileToAction(formData, 'teachers');
+    return fileToAction(formData, 'teachers', 'id');
 }
 
 export async function uploadStudentsCsv(formData: FormData): Promise<UploadResult> {
-     return fileToAction(formData, 'students');
+    return fileToAction(formData, 'students', 'Roll_Number');
 }
 
 export async function uploadResultsJson(formData: FormData): Promise<UploadResult> {
@@ -202,26 +200,26 @@ export async function uploadResultsJson(formData: FormData): Promise<UploadResul
 
     try {
         const fileContent = await file.text();
-        const resultsData = JSON.parse(fileContent);
+        const resultsData: ReportCard[] = JSON.parse(fileContent);
 
         if (!Array.isArray(resultsData)) {
             return { success: false, message: 'JSON file should contain an array of result objects.' };
         }
         
         const students = await getStudents();
-        const studentMapByRollNo = new Map(students.map(s => [s.rollNo, s.id]));
+        const studentMapByRollNo = new Map(students.map(s => [s.rollNumber, s.id]));
 
         for (const result of resultsData) {
-            if (!result.rollNo) {
-                console.warn('Skipping result without rollNo:', result);
+            if (!result.roll_number) {
+                console.warn('Skipping result without roll_number:', result);
                 continue;
             }
-            const studentId = studentMapByRollNo.get(result.rollNo.toString());
-            if (studentId) {
+            const studentId = result.roll_number;
+            if (studentMapByRollNo.has(studentId)) {
                 const resultsRef = ref(db, `students/${studentId}/results`);
                 await push(resultsRef, result);
             } else {
-                console.warn(`No student found for roll number: ${result.rollNo}`);
+                console.warn(`No student found for roll number: ${result.roll_number}`);
             }
         }
 

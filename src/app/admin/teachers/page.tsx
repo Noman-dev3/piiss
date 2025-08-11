@@ -46,14 +46,14 @@ function TeachersPage() {
             <Card>
                 <CardHeader>
                     <CardTitle>Upload Teacher Data</CardTitle>
-                    <CardDescription>Upload a CSV file to add or update the teacher list. This will overwrite all existing teacher data.</CardDescription>
+                    <CardDescription>Upload a CSV file to add or update the teacher list. This will use 'id' as the unique key and will overwrite all existing teacher data.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <Alert>
                         <Info className="h-4 w-4" />
                         <AlertTitle>CSV Format</AlertTitle>
                         <AlertDescription>
-                            The CSV file must contain the following columns: `id`, `name`, `role`, `subject`, `department`, `experience`, `qualification`, `imageUrl`.
+                            The CSV file must contain the following columns: `id`, `name`, `role`, `subject`, `department`, `experience`, `qualification`, `imageUrl`, `bio`.
                         </AlertDescription>
                     </Alert>
                     <form action={handleFileUpload} className="space-y-4">
@@ -81,6 +81,7 @@ function TeachersPage() {
                                 <TableHead>Subject</TableHead>
                                 <TableHead>Role</TableHead>
                                 <TableHead>Experience</TableHead>
+                                <TableHead>Qualification</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -90,10 +91,11 @@ function TeachersPage() {
                                     <TableCell>{teacher.subject}</TableCell>
                                     <TableCell>{teacher.role}</TableCell>
                                     <TableCell>{teacher.experience}</TableCell>
+                                    <TableCell>{teacher.qualification}</TableCell>
                                 </TableRow>
                             )) : (
                                 <TableRow>
-                                    <TableCell colSpan={4} className="text-center">No teachers found.</TableCell>
+                                    <TableCell colSpan={5} className="text-center">No teachers found.</TableCell>
                                 </TableRow>
                             )}
                         </TableBody>

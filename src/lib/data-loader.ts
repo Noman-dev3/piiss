@@ -12,8 +12,8 @@ async function fetchData<T>(path: string): Promise<T[]> {
     const snapshot = await get(child(dbRef, path));
     if (snapshot.exists()) {
       const data = snapshot.val();
-      // Convert object of objects into an array with IDs
-      return Object.keys(data).map(key => ({ id: key, ...data[key] }));
+      // Convert object of objects into an array, using the key from firebase as the id
+      return Object.keys(data).map(key => ({ ...data[key], id: key }));
     }
     return [];
   } catch (error) {
@@ -28,7 +28,7 @@ async function fetchSingleItem<T>(path: string, id: string): Promise<T | null> {
         const dbRef = ref(db, `${path}/${id}`);
         const snapshot = await get(dbRef);
         if (snapshot.exists()) {
-            return { id: snapshot.key, ...snapshot.val() } as T;
+            return { ...snapshot.val(), id: snapshot.key } as T;
         }
         return null;
     } catch (error) {
