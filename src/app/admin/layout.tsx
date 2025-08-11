@@ -3,7 +3,7 @@
 import { AuthProvider, useAuth } from '@/hooks/use-auth';
 import { SidebarProvider, Sidebar, SidebarHeader, SidebarTrigger, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter } from '@/components/ui/sidebar';
 import { Logo } from '@/components/shared/Logo';
-import { LayoutDashboard, Users, GraduationCap, Settings, LogOut, FileText, UserPlus, Newspaper, Image as ImageIcon, Calendar, Star, MessageSquareQuote, HelpCircle, Megaphone } from 'lucide-react';
+import { LayoutDashboard, Users, GraduationCap, Settings, LogOut, FileText, UserPlus, Image as ImageIcon, Calendar, Star, MessageSquareQuote, HelpCircle, Megaphone } from 'lucide-react';
 import { UserNav } from './_components/user-nav';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
@@ -14,7 +14,6 @@ const menuItems = [
     { href: '/admin/students', label: 'Students', icon: <GraduationCap /> },
     { href: '/admin/teachers', label: 'Teachers', icon: <Users /> },
     { href: '/admin/results', label: 'Results', icon: <FileText /> },
-    { href: '/admin/news', label: 'News', icon: <Newspaper /> },
     { href: '/admin/events', label: 'Events', icon: <Calendar /> },
     { href: '/admin/gallery', label: 'Gallery', icon: <ImageIcon /> },
     { href: '/admin/toppers', label: 'Toppers', icon: <Star /> },

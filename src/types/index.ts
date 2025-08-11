@@ -37,17 +37,6 @@ export interface ReportCard {
   grade: string;
 }
 
-
-export interface News {
-  id?: string;
-  title: string;
-  date: string;
-  category: string;
-  excerpt: string;
-  content: string;
-  imageUrl: string;
-}
-
 export interface GalleryImage {
   id?: string;
   src: string;

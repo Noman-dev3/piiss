@@ -1,3 +1,4 @@
+
 import { AboutSection } from "@/components/sections/AboutSection";
 import { ContactSection } from "@/components/sections/ContactSection";
 import { FeaturedTeachers } from "@/components/sections/FeaturedTeachers";

@@ -3,7 +3,7 @@
 
 import { db } from './firebase';
 import { ref, get, child } from 'firebase/database';
-import type { Teacher, Student, ReportCard, News, GalleryImage, Announcement, Topper, Testimonial, Event, FAQ, SiteSettings } from '@/types';
+import type { Teacher, Student, ReportCard, GalleryImage, Announcement, Topper, Testimonial, Event, FAQ, SiteSettings } from '@/types';
 
 
 // Helper function to fetch data from a path in Realtime Database
@@ -13,10 +13,8 @@ async function fetchData<T>(path: string): Promise<T[]> {
     const snapshot = await get(child(dbRef, path));
     if (snapshot.exists()) {
       const data = snapshot.val();
-      // Handle both array-like (gallery) and object-of-objects data structures
-      if (Array.isArray(data)) {
-        // Firebase stores arrays as objects with integer keys, so filter out nulls if it was sparse
-        return data.filter(item => item !== null).map((item, index) => ({ ...item, id: String(index) }));
+      if (data === null || typeof data !== 'object') {
+        return [];
       }
       return Object.keys(data).map(key => ({ ...data[key], id: key }));
     }
@@ -46,7 +44,6 @@ async function fetchSingleItem<T>(path: string, id: string): Promise<T | null> {
 export const getTeachers = async () => fetchData<Teacher>('teachers');
 export const getStudents = async () => fetchData<Student>('students');
 export const getReportCards = async (studentId: string) => fetchData<ReportCard>(`students/${studentId}/results`);
-export const getNews = async () => fetchData<News>('news');
 export const getGalleryImages = async () => fetchData<GalleryImage>('gallery');
 export const getAnnouncements = async () => fetchData<Announcement>('announcements');
 export const getToppers = async () => fetchData<Topper>('toppers');
@@ -54,7 +51,6 @@ export const getTestimonials = async () => fetchData<Testimonial>('testimonials'
 export const getEvents = async () => fetchData<Event>('events');
 export const getFaqs = async () => fetchData<FAQ>('faq');
 
-export const getSingleNews = async (id: string) => fetchSingleItem<News>('news', id);
 export const getSingleTeacher = async (id: string) => fetchSingleItem<Teacher>('teachers', id);
 
 export const getSiteSettings = async (): Promise<SiteSettings> => {
@@ -122,7 +118,6 @@ export const getRawData = async () => {
     const [
       teachers,
       events,
-      news,
       faq,
       announcements,
       siteSettings,
@@ -131,7 +126,6 @@ export const getRawData = async () => {
     ] = await Promise.all([
       getTeachers(),
       getEvents(),
-      getNews(),
       getFaqs(),
       getAnnouncements(),
       getSiteSettings(),
@@ -139,10 +133,12 @@ export const getRawData = async () => {
       getStudents(),
     ]);
 
+    const newsData = '[]'; // News has been removed
+
     return {
       siteSettings: JSON.stringify(siteSettings || {}),
       eventsData: JSON.stringify(events),
-      newsData: JSON.stringify(news),
+      newsData: newsData,
       teachersData: JSON.stringify(teachers),
       faqData: JSON.stringify(faq),
       publicResultsMetadata: JSON.stringify(publicResultsMetadata.val() || {}),

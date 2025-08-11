@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview AI-powered smart search flow for the website.
@@ -14,7 +15,7 @@ const SmartSearchInputSchema = z.object({
   query: z.string().describe('The search query entered by the user.'),
   siteSettings: z.string().describe('The data of site settings.'),
   eventsData: z.string().describe('The data of events.'),
-  newsData: z.string().describe('The data of news.'),
+  newsData: z.string().describe('The data of news. This section has been removed, so this data will be empty.'),
   teachersData: z.string().describe('The data of teachers.'),
   faqData: z.string().describe('The data of FAQs.'),
   publicResultsMetadata: z.string().describe('The data of public results metadata.'),
@@ -42,7 +43,6 @@ You have access to the following data sources:
 
 - Site Settings: {{{siteSettings}}}
 - Events: {{{eventsData}}}
-- News: {{{newsData}}}
 - Teachers: {{{teachersData}}}
 - FAQ: {{{faqData}}}
 - Public Results Metadata: {{{publicResultsMetadata}}}
@@ -52,6 +52,7 @@ You have access to the following data sources:
 Use the data to provide the most relevant search results to the user, considering both the meaning of the query and specific keywords.
 If the user asks about a specific student's grades, provide the grades from the 'studentsData'.
 If the query is not relevant to the data provided, respond that you are unable to find results for the query.
+The news section has been removed, do not mention it.
 
 Query: {{{query}}}`,
 });

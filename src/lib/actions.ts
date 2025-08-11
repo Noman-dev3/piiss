@@ -8,7 +8,7 @@ import { db, storage } from './firebase';
 import { ref, push, serverTimestamp, set, child, get, update, remove } from 'firebase/database';
 import { ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
 import Papa from 'papaparse';
-import type { Student, ReportCard, Teacher, SiteSettings, News, GalleryImage, Event, Topper, Testimonial, Announcement, FAQ } from '@/types';
+import type { Student, ReportCard, Teacher, SiteSettings, GalleryImage, Event, Topper, Testimonial, Announcement, FAQ } from '@/types';
 import { sendContactFormEmail, sendAdmissionFormEmail } from '@/lib/email';
 import { revalidatePath } from 'next/cache';
 
@@ -359,88 +359,6 @@ export async function updateSiteSettings(formData: FormData): Promise<UploadResu
     } catch (error: any) {
         console.error('Error updating site settings:', error);
         return { success: false, message: error.message || 'An unexpected error occurred.' };
-    }
-}
-
-const newsArticleSchema = z.object({
-  id: z.string().optional(),
-  title: z.string().min(1, 'Title is required'),
-  category: z.string().min(1, 'Category is required'),
-  imageFile: z.any().optional(),
-  imageUrl: z.string().optional(),
-  content: z.string().min(10, 'Content must be at least 10 characters'),
-});
-
-const handleNewsArticle = async (formData: FormData, isUpdate: boolean): Promise<UploadResult> => {
-    const rawData = Object.fromEntries(formData.entries());
-    const validatedData = newsArticleSchema.safeParse(rawData);
-    
-    if (!validatedData.success) {
-        return { success: false, message: validatedData.error.errors.map(e => e.message).join(', ') };
-    }
-
-    const { id, imageFile, ...data } = validatedData.data;
-    let imageUrl = data.imageUrl;
-
-    if (imageFile instanceof File && imageFile.size > 0) {
-        imageUrl = await uploadFile(imageFile, 'news');
-    }
-
-    if (!isUpdate && !imageUrl) {
-        return { success: false, message: 'An image is required for a new news article.' };
-    }
-    
-    try {
-        const articleData: Omit<News, 'id' | 'date'> = {
-            title: data.title,
-            category: data.category,
-            content: data.content,
-            excerpt: data.content.substring(0, 100).replace(/<[^>]+>/g, '') + '...',
-            imageUrl: imageUrl || '', // Ensure imageUrl is not undefined
-        };
-        
-        if (isUpdate && id) {
-             const articleRef = ref(db, `news/${id}`);
-             const updateData: Partial<typeof articleData> = {...articleData};
-             if (imageUrl) {
-                updateData.imageUrl = imageUrl;
-             }
-             await update(articleRef, updateData);
-        } else {
-             const newsRef = ref(db, 'news');
-             const newArticleRef = push(newsRef);
-             await set(newArticleRef, { ...articleData, date: new Date().toISOString() });
-        }
-        
-        revalidatePath('/news');
-        if (id) revalidatePath(`/news/${id}`);
-        revalidatePath('/admin/news');
-
-        const message = isUpdate ? 'News article updated successfully.' : 'News article created successfully.';
-        return { success: true, message };
-    } catch (error: any) {
-        return { success: false, message: error.message || 'An error occurred.' };
-    }
-};
-
-export async function createNewsArticle(formData: FormData): Promise<UploadResult> {
-    return handleNewsArticle(formData, false);
-}
-
-export async function updateNewsArticle(formData: FormData): Promise<UploadResult> {
-    return handleNewsArticle(formData, true);
-}
-
-
-export async function deleteNewsArticle(id: string): Promise<UploadResult> {
-    try {
-        const articleRef = ref(db, `news/${id}`);
-        await remove(articleRef);
-        revalidatePath('/news');
-        revalidatePath('/admin/news');
-        return { success: true, message: 'News article deleted successfully.' };
-    } catch (error: any) {
-        return { success: false, message: error.message || 'An error occurred.' };
     }
 }
 

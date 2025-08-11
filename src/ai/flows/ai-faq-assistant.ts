@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -15,7 +16,7 @@ const AiFAQAssistantInputSchema = z.object({
   query: z.string().describe('The user question about the school.'),
   siteSettings: z.string().describe('The site settings data.'),
   eventsData: z.string().describe('The events data.'),
-  newsData: z.string().describe('The news data.'),
+  newsData: z.string().describe('The news data. This section has been removed, so this will be empty.'),
   teachersData: z.string().describe('The teachers data.'),
   faqData: z.string().describe('The FAQ data.'),
   publicResultsMetadata: z.string().describe('The public results metadata.'),
@@ -42,7 +43,6 @@ const aiFAQAssistantPrompt = ai.definePrompt({
 
   - Site Settings: {{{siteSettings}}}
   - Events Data: {{{eventsData}}}
-  - News Data: {{{newsData}}}
   - Teachers Data: {{{teachersData}}}
   - FAQ Data: {{{faqData}}}
   - Public Results Metadata: {{{publicResultsMetadata}}}
@@ -51,6 +51,7 @@ const aiFAQAssistantPrompt = ai.definePrompt({
 
   Use the data to provide helpful and informative answers to the user.
   If you cannot answer the question based on the data provided, respond that you are unable to find the answer to the question.
+  The news section has been removed, do not mention it.
 
   Question: {{{query}}} `,
 });
