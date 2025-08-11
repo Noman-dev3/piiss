@@ -2,13 +2,13 @@
 
 import { useFormState, useFormStatus } from 'react-dom';
 import { submitContactForm, type FormState } from '@/lib/actions';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -23,6 +23,7 @@ export function ContactForm() {
   const initialState: FormState = { message: '' };
   const [state, formAction] = useFormState(submitContactForm, initialState);
   const { toast } = useToast();
+  const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
     if (state.message && !state.issues) {
@@ -30,6 +31,7 @@ export function ContactForm() {
         title: 'Success!',
         description: state.message,
       });
+       formRef.current?.reset();
     } else if (state.message && state.issues) {
       toast({
         variant: 'destructive',
@@ -42,31 +44,52 @@ export function ContactForm() {
   const getIssue = (path: string) => state.issues?.find(issue => issue.startsWith(path))?.replace(path + ': ', '');
 
   return (
-    <Card className="w-full max-w-lg mx-auto shadow-2xl">
-      <CardHeader>
-        <CardTitle className="text-3xl">Get in Touch</CardTitle>
-        <CardDescription>Fill out the form below and we'll get back to you as soon as possible.</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form action={formAction} className="space-y-4">
-          <div>
-            <Label htmlFor="name">Name</Label>
-            <Input id="name" name="name" placeholder="Your Name" required />
-            {getIssue('name') && <p className="text-sm text-destructive mt-1">{getIssue('name')}</p>}
+    <div className="w-full">
+      <h3 className="text-2xl font-bold mb-6">Send us a Message</h3>
+        <form ref={formRef} action={formAction} className="space-y-6">
+           <div className="grid md:grid-cols-2 gap-6">
+            <div className='space-y-2'>
+              <Label htmlFor="firstName">First Name *</Label>
+              <Input id="firstName" name="firstName" placeholder="Enter your first name" required />
+              {getIssue('firstName') && <p className="text-sm text-destructive mt-1">{getIssue('firstName')}</p>}
+            </div>
+            <div className='space-y-2'>
+              <Label htmlFor="lastName">Last Name *</Label>
+              <Input id="lastName" name="lastName" placeholder="Enter your last name" required />
+               {getIssue('lastName') && <p className="text-sm text-destructive mt-1">{getIssue('lastName')}</p>}
+            </div>
           </div>
-          <div>
-            <Label htmlFor="email">Email</Label>
-            <Input id="email" name="email" type="email" placeholder="your@email.com" required />
-            {getIssue('email') && <p className="text-sm text-destructive mt-1">{getIssue('email')}</p>}
+          <div className='space-y-2'>
+            <Label htmlFor="email">Email Address *</Label>
+            <Input id="email" name="email" type="email" placeholder="Enter your email" required />
+             {getIssue('email') && <p className="text-sm text-destructive mt-1">{getIssue('email')}</p>}
           </div>
-          <div>
-            <Label htmlFor="message">Message</Label>
-            <Textarea id="message" name="message" placeholder="Your message..." required rows={5} />
+          <div className='space-y-2'>
+            <Label htmlFor="phone">Phone Number</Label>
+            <Input id="phone" name="phone" placeholder="Enter your phone number" />
+          </div>
+          <div className='space-y-2'>
+            <Label htmlFor="subject">Subject *</Label>
+            <Select name="subject">
+              <SelectTrigger>
+                <SelectValue placeholder="Select a subject" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="general">General Inquiry</SelectItem>
+                <SelectItem value="admissions">Admissions</SelectItem>
+                <SelectItem value="feedback">Feedback</SelectItem>
+                <SelectItem value="other">Other</SelectItem>
+              </SelectContent>
+            </Select>
+            {getIssue('subject') && <p className="text-sm text-destructive mt-1">{getIssue('subject')}</p>}
+          </div>
+          <div className='space-y-2'>
+            <Label htmlFor="message">Message *</Label>
+            <Textarea id="message" name="message" placeholder="Enter your message" required rows={5} />
             {getIssue('message') && <p className="text-sm text-destructive mt-1">{getIssue('message')}</p>}
           </div>
           <SubmitButton />
         </form>
-      </CardContent>
-    </Card>
+    </div>
   );
 }

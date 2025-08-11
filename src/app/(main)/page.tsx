@@ -1,5 +1,5 @@
 import { AboutSection } from "@/components/sections/AboutSection";
-import { ContactForm } from "@/components/ContactForm";
+import { ContactSection } from "@/components/sections/ContactSection";
 import { FeaturedTeachers } from "@/components/sections/FeaturedTeachers";
 import { GalleryPreview } from "@/components/sections/GalleryPreview";
 import { HeroSection } from "@/components/sections/HeroSection";
@@ -19,11 +19,7 @@ export default function HomePage() {
       <NewsAndEvents />
       <GalleryPreview />
       <TestimonialsCarousel />
-      <section id="contact" className="py-16 md:py-24 bg-background">
-        <div className="container mx-auto max-w-7xl px-4">
-            <ContactForm />
-        </div>
-      </section>
+      <ContactSection />
     </>
   );
 }

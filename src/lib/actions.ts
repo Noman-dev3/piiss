@@ -5,8 +5,11 @@ import { smartSearch } from '@/ai/flows/smart-search';
 import { getRawData } from './data-loader';
 
 const contactSchema = z.object({
-  name: z.string().min(2, { message: "Name must be at least 2 characters." }),
+  firstName: z.string().min(2, { message: "First name must be at least 2 characters." }),
+  lastName: z.string().min(2, { message: "Last name must be at least 2 characters." }),
   email: z.string().email({ message: "Please enter a valid email." }),
+  phone: z.string().optional(),
+  subject: z.string().min(1, { message: "Please select a subject." }),
   message: z.string().min(10, { message: "Message must be at least 10 characters." }),
 });
 
@@ -20,20 +23,25 @@ export async function submitContactForm(
   prevState: FormState,
   formData: FormData
 ): Promise<FormState> {
-  const validatedFields = contactSchema.safeParse(Object.fromEntries(formData.entries()));
+  const rawData = Object.fromEntries(formData.entries());
+  // Handle case where select is not touched
+  if (!rawData.subject) rawData.subject = '';
+
+  const validatedFields = contactSchema.safeParse(rawData);
 
   if (!validatedFields.success) {
-    const { fieldErrors } = validatedFields.error.flatten();
     return {
       message: "Please fix the errors below.",
-      fields: Object.fromEntries(formData.entries()),
+      fields: rawData,
       issues: validatedFields.error.issues.map(issue => issue.path.join('.') + ': ' + issue.message),
     };
   }
 
   console.log("New Contact Form Submission:");
-  console.log("Name:", validatedFields.data.name);
+  console.log("Name:", `${validatedFields.data.firstName} ${validatedFields.data.lastName}`);
   console.log("Email:", validatedFields.data.email);
+  console.log("Phone:", validatedFields.data.phone);
+  console.log("Subject:", validatedFields.data.subject);
   console.log("Message:", validatedFields.data.message);
   
   return { message: "Thank you for your message! We will get back to you shortly." };
@@ -50,9 +58,9 @@ const admissionSchema = z.object({
   appliedClass: z.string().min(1, "Class is required."),
   supportingDocument: z
     .any()
-    .refine((file) => file?.size <= MAX_FILE_SIZE, `File size should be less than 5MB.`)
+    .refine((file) => !file || file.size === 0 || file.size <= MAX_FILE_SIZE, `File size should be less than 5MB.`)
     .refine(
-      (file) => ACCEPTED_FILE_TYPES.includes(file?.type),
+      (file) => !file || file.size === 0 || ACCEPTED_FILE_TYPES.includes(file?.type),
       "Only .jpg, .png, and .pdf files are accepted."
     ).optional(),
 });
