@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -39,7 +40,9 @@ export default function GalleryPage() {
     async function loadData() {
       try {
         const data = await getGalleryImages();
-        setImages(data);
+        // Ensure data is an array and filter out any invalid entries
+        const validImages = Array.isArray(data) ? data.filter(img => img && img.id && img.src) : [];
+        setImages(validImages);
       } catch (error) {
         console.error("Failed to load gallery images", error);
       } finally {
@@ -62,7 +65,7 @@ export default function GalleryPage() {
                   <div className="relative aspect-[3/4]">
                     <Image
                       src={img.src}
-                      alt={img.alt}
+                      alt={img.alt || 'Gallery image'}
                       fill
                       className="object-cover transition-transform duration-300 group-hover:scale-105"
                       sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
@@ -75,7 +78,7 @@ export default function GalleryPage() {
                 <div className="relative aspect-video">
                   <Image
                     src={img.src}
-                    alt={img.alt}
+                    alt={img.alt || 'Gallery image'}
                     fill
                     className="object-contain"
                     data-ai-hint={img.hint}
