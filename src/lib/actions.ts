@@ -502,12 +502,10 @@ export async function createGalleryImage(formData: FormData): Promise<UploadResu
     try {
         const imageUrl = await uploadFile(validatedData.data.src, 'gallery');
 
-        const snapshot = await get(ref(db, 'gallery'));
-        const galleryData: GalleryImage[] = snapshot.val() || [];
-        const nextId = galleryData.length > 0 ? Math.max(...galleryData.map((item) => item.id || 0)) + 1 : 1;
+        const galleryRef = ref(db, 'gallery');
+        const newImageRef = push(galleryRef);
         
-        const newImage: GalleryImage = {
-            id: nextId,
+        const newImage: Omit<GalleryImage, 'id'> = {
             src: imageUrl,
             alt: validatedData.data.title, // Use title for alt text
             title: validatedData.data.title,
@@ -515,8 +513,7 @@ export async function createGalleryImage(formData: FormData): Promise<UploadResu
             hint: validatedData.data.hint,
         };
 
-        const newGalleryData = [...galleryData, newImage];
-        await set(ref(db, 'gallery'), newGalleryData);
+        await set(newImageRef, newImage);
         
         revalidatePath('/gallery');
         revalidatePath('/admin/gallery');
@@ -527,20 +524,19 @@ export async function createGalleryImage(formData: FormData): Promise<UploadResu
     }
 }
 
-export async function deleteGalleryImage(id: number): Promise<UploadResult> {
+export async function deleteGalleryImage(id: string): Promise<UploadResult> {
     try {
-        const snapshot = await get(ref(db, 'gallery'));
-        const galleryData: GalleryImage[] = snapshot.val() || [];
+        const imageRef = ref(db, `gallery/${id}`);
+        const snapshot = await get(imageRef);
         
-        const imageToDelete = galleryData.find((image: GalleryImage) => image.id === id);
-        if (imageToDelete && imageToDelete.src.includes('firebasestorage.googleapis.com')) {
-            const imageStorageRef = storageRef(storage, imageToDelete.src);
-            await deleteObject(imageStorageRef).catch(err => console.error("Could not delete file from storage", err));
+        if (snapshot.exists()) {
+            const imageToDelete = snapshot.val();
+            if (imageToDelete && imageToDelete.src.includes('firebasestorage.googleapis.com')) {
+                const imageStorageRef = storageRef(storage, imageToDelete.src);
+                await deleteObject(imageStorageRef).catch(err => console.error("Could not delete file from storage", err));
+            }
+            await remove(imageRef);
         }
-
-        const newGalleryData = galleryData.filter((image: GalleryImage) => image.id !== id);
-
-        await set(ref(db, 'gallery'), newGalleryData);
 
         revalidatePath('/gallery');
         revalidatePath('/admin/gallery');
@@ -573,9 +569,8 @@ export async function createEvent(formData: FormData): Promise<UploadResult> {
 
     try {
         const imageUrl = await uploadFile(validatedData.data.imageFile, 'events');
-        const snapshot = await get(ref(db, 'events'));
-        const data: Event[] = snapshot.val() || [];
-        const nextId = data.length > 0 ? Math.max(...data.map(item => item.id || 0)) + 1 : 1;
+        const eventRef = ref(db, 'events');
+        const newEventRef = push(eventRef);
         
         const newEvent: Omit<Event, 'id'> = {
             title: validatedData.data.title,
@@ -584,8 +579,7 @@ export async function createEvent(formData: FormData): Promise<UploadResult> {
             imageUrl: imageUrl
         };
         
-        const newData = [...data, { id: nextId, ...newEvent }];
-        await set(ref(db, 'events'), newData);
+        await set(newEventRef, newEvent);
 
         revalidatePath('/events');
         revalidatePath('/admin/events');
@@ -595,12 +589,10 @@ export async function createEvent(formData: FormData): Promise<UploadResult> {
     }
 }
 
-export async function deleteEvent(id: number): Promise<UploadResult> {
+export async function deleteEvent(id: string): Promise<UploadResult> {
     try {
-        const snapshot = await get(ref(db, 'events'));
-        const data: Event[] = snapshot.val() || [];
-        const newData = data.filter(item => item.id !== id);
-        await set(ref(db, 'events'), newData);
+        const eventRef = ref(db, `events/${id}`);
+        await remove(eventRef);
         
         revalidatePath('/events');
         revalidatePath('/admin/events');
@@ -623,7 +615,7 @@ export async function createTopper(formData: FormData): Promise<UploadResult> {
         name: formData.get('name'),
         class: formData.get('class'),
         percentage: formData.get('percentage'),
-        imageFile: formData.get('imageUrl'), // The form uses name="imageUrl" for the file input
+        imageFile: formData.get('imageUrl'),
     };
     const validatedData = topperSchema.safeParse(rawData);
 
@@ -633,9 +625,8 @@ export async function createTopper(formData: FormData): Promise<UploadResult> {
 
     try {
         const imageUrl = await uploadFile(validatedData.data.imageFile, 'toppers');
-        const snapshot = await get(ref(db, 'toppers'));
-        const data: Topper[] = snapshot.val() || [];
-        const nextId = data.length > 0 ? Math.max(...data.map(item => item.id || 0)) + 1 : 1;
+        const toppersRef = ref(db, 'toppers');
+        const newTopperRef = push(toppersRef);
 
         const newTopper: Omit<Topper, 'id'> = {
             name: validatedData.data.name,
@@ -643,8 +634,7 @@ export async function createTopper(formData: FormData): Promise<UploadResult> {
             percentage: validatedData.data.percentage,
             imageUrl
         };
-        const newData = [...data, { id: nextId, ...newTopper }];
-        await set(ref(db, 'toppers'), newData);
+        await set(newTopperRef, newTopper);
 
         revalidatePath('/');
         revalidatePath('/admin/toppers');
@@ -654,12 +644,10 @@ export async function createTopper(formData: FormData): Promise<UploadResult> {
     }
 }
 
-export async function deleteTopper(id: number): Promise<UploadResult> {
+export async function deleteTopper(id: string): Promise<UploadResult> {
     try {
-        const snapshot = await get(ref(db, 'toppers'));
-        const data: Topper[] = snapshot.val() || [];
-        const newData = data.filter(item => item.id !== id);
-        await set(ref(db, 'toppers'), newData);
+        const topperRef = ref(db, `toppers/${id}`);
+        await remove(topperRef);
 
         revalidatePath('/');
         revalidatePath('/admin/toppers');
@@ -684,11 +672,9 @@ export async function createTestimonial(formData: FormData): Promise<UploadResul
     }
     
     try {
-        const snapshot = await get(ref(db, 'testimonials'));
-        const data: Testimonial[] = snapshot.val() || [];
-        const nextId = data.length > 0 ? Math.max(...data.map(item => item.id || 0)) + 1 : 1;
-        const newData = [...data, { id: nextId, ...validatedData.data }];
-        await set(ref(db, 'testimonials'), newData);
+        const testimonialRef = ref(db, 'testimonials');
+        const newTestimonialRef = push(testimonialRef);
+        await set(newTestimonialRef, validatedData.data);
 
         revalidatePath('/');
         revalidatePath('/admin/testimonials');
@@ -696,12 +682,10 @@ export async function createTestimonial(formData: FormData): Promise<UploadResul
     } catch (e: any) { return { success: false, message: e.message } }
 }
 
-export async function deleteTestimonial(id: number): Promise<UploadResult> {
+export async function deleteTestimonial(id: string): Promise<UploadResult> {
     try {
-        const snapshot = await get(ref(db, 'testimonials'));
-        const data: Testimonial[] = snapshot.val() || [];
-        const newData = data.filter(item => item.id !== id);
-        await set(ref(db, 'testimonials'), newData);
+        const testimonialRef = ref(db, `testimonials/${id}`);
+        await remove(testimonialRef);
         
         revalidatePath('/');
         revalidatePath('/admin/testimonials');
@@ -723,11 +707,9 @@ export async function createAnnouncement(formData: FormData): Promise<UploadResu
     }
 
     try {
-        const snapshot = await get(ref(db, 'announcements'));
-        const data: Announcement[] = snapshot.val() || [];
-        const nextId = data.length > 0 ? Math.max(...data.map(item => item.id || 0)) + 1 : 1;
-        const newData = [...data, { id: nextId, ...validatedData.data }];
-        await set(ref(db, 'announcements'), newData);
+        const announcementRef = ref(db, 'announcements');
+        const newAnnouncementRef = push(announcementRef);
+        await set(newAnnouncementRef, validatedData.data);
 
         revalidatePath('/');
         revalidatePath('/admin/announcements');
@@ -735,12 +717,10 @@ export async function createAnnouncement(formData: FormData): Promise<UploadResu
     } catch (e: any) { return { success: false, message: e.message } }
 }
 
-export async function deleteAnnouncement(id: number): Promise<UploadResult> {
+export async function deleteAnnouncement(id: string): Promise<UploadResult> {
     try {
-        const snapshot = await get(ref(db, 'announcements'));
-        const data: Announcement[] = snapshot.val() || [];
-        const newData = data.filter(item => item.id !== id);
-        await set(ref(db, 'announcements'), newData);
+        const announcementRef = ref(db, `announcements/${id}`);
+        await remove(announcementRef);
         
         revalidatePath('/');
         revalidatePath('/admin/announcements');
@@ -762,23 +742,19 @@ export async function createFaq(formData: FormData): Promise<UploadResult> {
     }
 
     try {
-        const snapshot = await get(ref(db, 'faq'));
-        const data: FAQ[] = snapshot.val() || [];
-        const nextId = data.length > 0 ? Math.max(...data.map(item => item.id || 0)) + 1 : 1;
-        const newData = [...data, { id: nextId, ...validatedData.data }];
-        await set(ref(db, 'faq'), newData);
+        const faqRef = ref(db, 'faq');
+        const newFaqRef = push(faqRef);
+        await set(newFaqRef, validatedData.data);
 
         revalidatePath('/admin/faq');
         return { success: true, message: 'FAQ added.' };
     } catch (e: any) { return { success: false, message: e.message } }
 }
 
-export async function deleteFaq(id: number): Promise<UploadResult> {
+export async function deleteFaq(id: string): Promise<UploadResult> {
     try {
-        const snapshot = await get(ref(db, 'faq'));
-        const data: FAQ[] = snapshot.val() || [];
-        const newData = data.filter(item => item.id !== id);
-        await set(ref(db, 'faq'), newData);
+        const faqRef = ref(db, `faq/${id}`);
+        await remove(faqRef);
 
         revalidatePath('/admin/faq');
         return { success: true, message: 'FAQ deleted.' };

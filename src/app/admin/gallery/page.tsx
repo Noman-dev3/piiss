@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { useEffect, useState, useTransition, useRef } from "react";
+import { useEffect, useState, useTransition, useRef, FormEvent } from "react";
 import { getGalleryImages } from "@/lib/data-loader";
 import { createGalleryImage, deleteGalleryImage } from "@/lib/actions";
 import type { GalleryImage } from "@/types";
@@ -50,7 +50,7 @@ function GalleryPage() {
         fetchImages();
     }, []);
 
-    const handleDelete = async (id?: number) => {
+    const handleDelete = async (id?: string) => {
         if (!id) return;
         startDeleteTransition(async () => {
             const result = await deleteGalleryImage(id);
@@ -63,7 +63,9 @@ function GalleryPage() {
         });
     }
     
-    const handleAddImageAction = (formData: FormData) => {
+    const handleAddImageAction = (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        const formData = new FormData(event.currentTarget);
         startTransition(async () => {
             const result = await createGalleryImage(formData);
             if (result.success) {
@@ -86,7 +88,7 @@ function GalleryPage() {
                     <CardDescription>Upload a new image to the website's gallery.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <form ref={formRef} action={handleAddImageAction} className="space-y-4">
+                    <form ref={formRef} onSubmit={handleAddImageAction} className="space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                              <div className="space-y-2">
                                 <Label htmlFor="src">Image File</Label>

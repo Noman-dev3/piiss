@@ -50,7 +50,7 @@ function TestimonialsPage() {
         fetchTestimonials();
     }, []);
 
-    const handleDelete = async (id?: number) => {
+    const handleDelete = async (id?: string) => {
         if (!id) return;
         startDeleteTransition(async () => {
             const result = await deleteTestimonial(id);

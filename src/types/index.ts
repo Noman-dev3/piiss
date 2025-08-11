@@ -1,5 +1,4 @@
 
-
 export interface Teacher {
   id: string;
   teacherId: string;
@@ -51,7 +50,7 @@ export interface News {
 }
 
 export interface GalleryImage {
-  id?: number;
+  id?: string;
   src: string;
   alt: string;
   hint: string;
@@ -60,13 +59,13 @@ export interface GalleryImage {
 }
 
 export interface Announcement {
-  id?: number;
+  id?: string;
   text: string;
   link?: string;
 }
 
 export interface Topper {
-  id?: number;
+  id?: string;
   name: string;
   class: string;
   percentage: string;
@@ -74,14 +73,14 @@ export interface Topper {
 }
 
 export interface Testimonial {
-  id?: number;
+  id?: string;
   name: string;
   role: string;
   quote: string;
 }
 
 export interface Event {
-  id?: number;
+  id?: string;
   title: string;
   date: string;
   description: string;
@@ -89,7 +88,7 @@ export interface Event {
 }
 
 export interface FAQ {
-    id?: number;
+    id?: string;
     question: string;
     answer: string;
 }
