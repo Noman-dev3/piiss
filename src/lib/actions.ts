@@ -30,6 +30,7 @@ const contactSchema = z.object({
 });
 
 export type FormState = {
+  success: boolean;
   message: string;
   fields?: Record<string, string>;
   issues?: string[];
@@ -46,6 +47,7 @@ export async function submitContactForm(
 
   if (!validatedFields.success) {
     return {
+      success: false,
       message: "Please fix the errors below.",
       fields: rawData,
       issues: validatedFields.error.issues.map(issue => issue.path.join('.') + ': ' + issue.message),
@@ -62,10 +64,10 @@ export async function submitContactForm(
     // Send email notifications
     await sendContactFormEmail(validatedFields.data);
 
-    return { message: "Thank you for your message! We will get back to you shortly." };
+    return { success: true, message: "Thank you for your message! We will get back to you shortly." };
   } catch (error) {
     console.error("Error saving contact form submission: ", error);
-    return { message: "An error occurred while submitting the form. Please try again." };
+    return { success: false, message: "An error occurred while submitting the form. Please try again." };
   }
 }
 
@@ -90,6 +92,7 @@ export async function submitAdmissionForm(prevState: FormState, formData: FormDa
 
   if (!validatedFields.success) {
     return {
+      success: false,
       message: "Please fix the errors below.",
       fields: Object.fromEntries(formData.entries()),
       issues: validatedFields.error.issues.map(issue => issue.path.join('.') + ': ' + issue.message),
@@ -115,10 +118,10 @@ export async function submitAdmissionForm(prevState: FormState, formData: FormDa
     // Send email notification
     await sendAdmissionFormEmail(validatedFields.data);
 
-     return { message: `Thank you, ${validatedFields.data.applicantName}! Your admission form has been submitted successfully.` };
+     return { success: true, message: `Thank you, ${validatedFields.data.applicantName}! Your admission form has been submitted successfully.` };
   } catch (error) {
      console.error("Error saving admission form submission: ", error);
-     return { message: "An error occurred while submitting the form. Please try again." };
+     return { success: false, message: "An error occurred while submitting the form. Please try again." };
   }
 }
 

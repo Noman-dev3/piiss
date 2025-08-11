@@ -31,6 +31,7 @@ function GalleryPage() {
     const [images, setImages] = useState<GalleryImage[]>([]);
     const [loading, setLoading] = useState(true);
     const [isPending, startTransition] = useTransition();
+    const [isDeleting, startDeleteTransition] = useTransition();
     const formRef = useRef<HTMLFormElement>(null);
 
     const fetchImages = async () => {
@@ -51,7 +52,7 @@ function GalleryPage() {
 
     const handleDelete = (id?: number) => {
         if (!id) return;
-        startTransition(async () => {
+        startDeleteTransition(async () => {
             const result = await deleteGalleryImage(id);
              if (result.success) {
                 toast({ title: "Success", description: result.message });
@@ -62,15 +63,17 @@ function GalleryPage() {
         });
     }
     
-    const handleAddImageAction = async (formData: FormData) => {
-        const result = await createGalleryImage(formData);
-        if (result.success) {
-            toast({ title: "Success", description: result.message });
-            await fetchImages();
-            formRef.current?.reset();
-        } else {
-            toast({ title: "Error", description: result.message, variant: "destructive" });
-        }
+    const handleAddImageAction = (formData: FormData) => {
+        startTransition(async () => {
+            const result = await createGalleryImage(formData);
+            if (result.success) {
+                toast({ title: "Success", description: result.message });
+                await fetchImages();
+                formRef.current?.reset();
+            } else {
+                toast({ title: "Error", description: result.message, variant: "destructive" });
+            }
+        });
     };
 
     return (
@@ -102,9 +105,8 @@ function GalleryPage() {
                             <Label htmlFor="hint">AI Hint</Label>
                             <Input id="hint" name="hint" placeholder="e.g., student project" required />
                         </div>
-                        <Button type="submit">
-                            <PlusCircle className="mr-2" />
-                            Add Image
+                        <Button type="submit" disabled={isPending}>
+                            {isPending ? 'Adding...' : <> <PlusCircle className="mr-2" /> Add Image </>}
                         </Button>
                     </form>
                 </CardContent>
@@ -153,8 +155,8 @@ function GalleryPage() {
                                                 </AlertDialogHeader>
                                                 <AlertDialogFooter>
                                                     <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                    <AlertDialogAction onClick={() => handleDelete(image.id)} disabled={isPending}>
-                                                        {isPending ? 'Deleting...' : 'Delete'}
+                                                    <AlertDialogAction onClick={() => handleDelete(image.id)} disabled={isDeleting}>
+                                                        {isDeleting ? 'Deleting...' : 'Delete'}
                                                     </AlertDialogAction>
                                                 </AlertDialogFooter>
                                             </AlertDialogContent>
