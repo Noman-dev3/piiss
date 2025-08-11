@@ -41,9 +41,10 @@ function DashboardPage() {
                 });
 
                 if (activitySnap.exists()) {
-                    const activities = Object.values(activitySnap.val()).map((item: any) => ({
+                    const activities = Object.keys(activitySnap.val()).map((key: string) => ({
+                        id: key,
                         type: 'New admission application',
-                        name: item.applicantName,
+                        name: activitySnap.val()[key].applicantName,
                         time: '2 minutes ago', // Placeholder time
                         icon: <UserPlus className="w-5 h-5 text-green-500" />,
                     }));
@@ -134,8 +135,8 @@ function DashboardPage() {
                                     <Skeleton className="h-3 w-24" />
                                  </div>
                              </div>
-                         )) : recentActivity.length > 0 ? recentActivity.map((activity, index) => (
-                            <div key={index} className="flex items-center gap-4">
+                         )) : recentActivity.length > 0 ? recentActivity.map((activity) => (
+                            <div key={activity.id} className="flex items-center gap-4">
                                 <div className="p-2 bg-green-100 dark:bg-green-900/50 rounded-full">
                                     {activity.icon}
                                 </div>

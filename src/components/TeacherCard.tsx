@@ -1,8 +1,10 @@
+
 import type { Teacher } from '@/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { User, Star, BookOpen } from 'lucide-react';
 import Image from 'next/image';
+import { Fragment } from 'react';
 
 interface TeacherCardProps {
   teacher: Teacher;
@@ -11,13 +13,13 @@ interface TeacherCardProps {
 const DetailRow = ({ label, value }: { label: string, value?: string }) => {
     if (!value) return null;
     return (
-        <>
+        <Fragment key={label}>
             <div className="flex justify-between items-center text-sm">
                 <span className="text-muted-foreground">{label}</span>
                 <span className="font-semibold text-foreground text-right">{value}</span>
             </div>
             <hr />
-        </>
+        </Fragment>
     );
 };
 

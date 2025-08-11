@@ -16,6 +16,9 @@ export function ResultCard({ student, report }: ResultCardProps) {
     const year = report.session?.split(' ')[1] || new Date().getFullYear();
     const attendance = "95%"; // Placeholder
     const teacher_remarks = "Excellent progress."; // Placeholder
+    const totalMarks = Object.values(report.subjects).reduce((sum, marks) => sum + marks, 0);
+    const totalSubjects = Object.keys(report.subjects).length;
+    const percentage = totalSubjects > 0 ? (totalMarks / (totalSubjects * 100) * 100).toFixed(2) : 0;
 
     return (
         <Card className="w-full max-w-2xl mx-auto shadow-lg">
@@ -38,7 +41,7 @@ export function ResultCard({ student, report }: ResultCardProps) {
                     <TableHeader>
                         <TableRow>
                             <TableHead>Subject</TableHead>
-                            <TableHead className="text-right">Marks</TableHead>
+                            <TableHead className="text-right">Marks (out of 100)</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -48,6 +51,14 @@ export function ResultCard({ student, report }: ResultCardProps) {
                                 <TableCell className="text-right font-bold">{marks}</TableCell>
                             </TableRow>
                         ))}
+                         <TableRow key="total" className="bg-muted font-bold">
+                            <TableCell>Total Marks</TableCell>
+                            <TableCell className="text-right">{totalMarks} / {totalSubjects * 100}</TableCell>
+                        </TableRow>
+                        <TableRow key="percentage" className="bg-muted font-bold">
+                            <TableCell>Percentage</TableCell>
+                            <TableCell className="text-right">{percentage}%</TableCell>
+                        </TableRow>
                     </TableBody>
                 </Table>
             </CardContent>
