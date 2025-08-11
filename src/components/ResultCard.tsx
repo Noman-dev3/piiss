@@ -24,7 +24,7 @@ export function ResultCard({ student, report }: ResultCardProps) {
                     <div>
                         <CardTitle className="text-2xl">{student.name}</CardTitle>
                         <CardDescription>
-                            Roll No: {student.rollNo} | Class: {report.class}
+                            Roll No: {report.roll_number} | Class: {report.class}
                         </CardDescription>
                     </div>
                     <div className="text-right">

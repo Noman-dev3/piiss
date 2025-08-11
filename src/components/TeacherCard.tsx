@@ -11,10 +11,13 @@ interface TeacherCardProps {
 const DetailRow = ({ label, value }: { label: string, value?: string }) => {
     if (!value) return null;
     return (
-        <div className="flex justify-between items-center">
-            <span className="text-muted-foreground">{label}</span>
-            <span className="font-semibold text-foreground text-right">{value}</span>
-        </div>
+        <>
+            <div className="flex justify-between items-center text-sm">
+                <span className="text-muted-foreground">{label}</span>
+                <span className="font-semibold text-foreground text-right">{value}</span>
+            </div>
+            <hr />
+        </>
     );
 };
 
@@ -51,11 +54,9 @@ export function TeacherCard({ teacher }: TeacherCardProps) {
             </Badge>
         )}
       
-      <CardContent className="space-y-4 text-sm text-left p-0 flex-grow flex flex-col justify-end">
+      <CardContent className="space-y-3 p-0 flex-grow flex flex-col justify-end">
           <DetailRow label="Experience" value={teacher.experience} />
-          <hr/>
           <DetailRow label="Department" value={teacher.department} />
-           <hr/>
           <DetailRow label="Qualification" value={teacher.qualification} />
       </CardContent>
     </Card>

@@ -184,16 +184,22 @@ const fileToAction = async (formData: FormData, dbPath: string, idKey: string, k
         parsedData.forEach((item: any) => {
             const id = item[idKey]?.trim();
             if (id) {
-                 if (keyMapping) {
-                    const newItem: Record<string, any> = {};
+                const mappedItem: Record<string, any> = { id };
+                if (keyMapping) {
                     for (const oldKey in item) {
                         const newKey = keyMapping[oldKey.trim()] || oldKey.trim();
-                        newItem[newKey] = item[oldKey];
+                        mappedItem[newKey] = item[oldKey];
                     }
-                    updates[`${dbPath}/${id}`] = newItem;
                 } else {
-                   updates[`${dbPath}/${id}`] = item;
+                    Object.assign(mappedItem, item);
                 }
+                
+                // Special handling for photoPath to imageUrl
+                if (mappedItem.photoPath) {
+                    mappedItem.imageUrl = mappedItem.photoPath;
+                }
+                
+                updates[`${dbPath}/${id}`] = mappedItem;
             }
         });
         
@@ -220,7 +226,13 @@ export async function uploadTeachersCsv(formData: FormData): Promise<UploadResul
         'Contact': 'contact',
         'Salary': 'salary',
         'Photo_Path': 'photoPath',
-        'Date_Joined': 'dateJoined'
+        'Date_Joined': 'dateJoined',
+        'Subject': 'subject',
+        'Role': 'role',
+        'Experience': 'experience',
+        'Department': 'department',
+        'Qualification': 'qualification',
+        'Bio': 'bio'
     };
     return fileToAction(formData, 'teachers', 'Teacher_ID', keyMapping);
 }

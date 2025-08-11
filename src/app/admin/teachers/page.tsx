@@ -47,14 +47,14 @@ function TeachersPage() {
             <Card>
                 <CardHeader>
                     <CardTitle>Upload Teacher Data</CardTitle>
-                    <CardDescription>Upload a CSV file to add or update the teacher list. This will use 'Teacher_ID' as the unique key and will overwrite all existing teacher data.</CardDescription>
+                    <CardDescription>Upload a CSV file to add or update the teacher list. This will use 'Teacher_ID' as the unique key.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <Alert>
                         <Info className="h-4 w-4" />
                         <AlertTitle>CSV Format</AlertTitle>
                         <AlertDescription>
-                            The CSV file must contain the following columns: `Name`, `Teacher_ID`, `Contact`, `Salary`, `Photo_Path`, `Date_Joined`.
+                             The CSV file must contain the following columns: `Name`, `Teacher_ID`, `Contact`, `Salary`, `Photo_Path`, `Date_Joined`, `Subject`, `Role`, `Experience`, `Department`, `Qualification`, and `Bio`. `Photo_Path` should be a publicly accessible URL to an image.
                         </AlertDescription>
                     </Alert>
                     <form action={handleFileUpload} className="space-y-4">
@@ -80,18 +80,18 @@ function TeachersPage() {
                             <TableRow>
                                 <TableHead>Teacher ID</TableHead>
                                 <TableHead>Name</TableHead>
+                                <TableHead>Subject</TableHead>
                                 <TableHead>Contact</TableHead>
-                                <TableHead>Salary</TableHead>
                                 <TableHead>Date Joined</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
                             {teachers.length > 0 ? teachers.map(teacher => (
-                                <TableRow key={teacher.teacherId}>
+                                <TableRow key={teacher.id}>
                                     <TableCell>{teacher.teacherId}</TableCell>
                                     <TableCell>{teacher.name}</TableCell>
+                                    <TableCell>{teacher.subject}</TableCell>
                                     <TableCell>{teacher.contact}</TableCell>
-                                    <TableCell>{teacher.salary}</TableCell>
                                     <TableCell>{teacher.dateJoined}</TableCell>
                                 </TableRow>
                             )) : (
