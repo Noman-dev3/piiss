@@ -63,7 +63,6 @@ export interface Testimonial {
   name: string;
   role: string;
   quote: string;
-  imageUrl: string;
 }
 
 export interface Event {
