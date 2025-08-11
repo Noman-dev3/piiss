@@ -1,3 +1,4 @@
+
 import { getTeachers } from "@/lib/data-loader";
 import { notFound } from "next/navigation";
 import Image from "next/image";
@@ -59,7 +60,7 @@ export default async function TeacherProfilePage({ params }: { params: { id: str
                                 </div>
                                 <div className="flex items-center gap-3">
                                     <Mail className="w-5 h-5 text-accent" />
-                                    <span className="text-muted-foreground">{teacher.name.split(' ').join('.').toLowerCase()}@piiss.example</span>
+                                    <span className="text-muted-foreground">noman.dev3@gmail.com</span>
                                 </div>
                             </div>
                         </div>

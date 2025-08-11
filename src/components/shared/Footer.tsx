@@ -1,3 +1,4 @@
+
 import Link from 'next/link';
 import { Logo } from './Logo';
 import { Facebook, Twitter, Instagram } from 'lucide-react';
@@ -27,7 +28,7 @@ export function Footer() {
             <h3 className="font-semibold text-primary">Contact Us</h3>
             <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
               <li>Pakistan</li>
-              <li>support@piiss.example</li>
+              <li>noman.dev3@gmail.com</li>
               <li>+92-000-0000000</li>
             </ul>
           </div>

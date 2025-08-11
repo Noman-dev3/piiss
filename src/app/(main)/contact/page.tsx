@@ -1,3 +1,4 @@
+
 import { ContactForm } from "@/components/ContactForm";
 import { Mail, Phone, MapPin } from "lucide-react";
 
@@ -50,7 +51,7 @@ export default function ContactPage() {
                             </div>
                             <div>
                                 <h3 className="font-semibold">Email</h3>
-                                <p className="text-muted-foreground">support@piiss.example</p>
+                                <p className="text-muted-foreground">noman.dev3@gmail.com</p>
                             </div>
                         </div>
                     </div>
