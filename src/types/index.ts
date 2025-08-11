@@ -60,13 +60,13 @@ export interface GalleryImage {
 }
 
 export interface Announcement {
-  id: number;
+  id?: number;
   text: string;
   link?: string;
 }
 
 export interface Topper {
-  id: number;
+  id?: number;
   name: string;
   class: string;
   percentage: string;
@@ -74,14 +74,14 @@ export interface Topper {
 }
 
 export interface Testimonial {
-  id: number;
+  id?: number;
   name: string;
   role: string;
   quote: string;
 }
 
 export interface Event {
-  id: number;
+  id?: number;
   title: string;
   date: string;
   description: string;
@@ -89,7 +89,7 @@ export interface Event {
 }
 
 export interface FAQ {
-    id: number;
+    id?: number;
     question: string;
     answer: string;
 }
