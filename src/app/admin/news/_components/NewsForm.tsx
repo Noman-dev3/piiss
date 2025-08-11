@@ -13,7 +13,7 @@ import { News } from '@/types';
 import { useRouter } from 'next/navigation';
 import { useTransition } from 'react';
 import dynamic from 'next/dynamic';
-import 'react-quilljs/dist/quill.snow.css';
+import 'quill/dist/quill.snow.css';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const RichTextEditor = dynamic(() => import('./RichTextEditor'), { 
