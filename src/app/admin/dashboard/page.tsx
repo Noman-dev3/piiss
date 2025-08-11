@@ -1,3 +1,4 @@
+'use client';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Activity, Users, FileText, MessageSquare } from "lucide-react";
 
