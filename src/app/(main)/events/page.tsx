@@ -1,6 +1,6 @@
+
 import { getEvents } from '@/lib/data-loader';
-import Image from 'next/image';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar } from 'lucide-react';
 
 function PageHeader() {
@@ -26,18 +26,8 @@ export default async function EventsPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {events.map((event) => (
             <Card key={event.id} className="overflow-hidden group flex flex-col hover:shadow-xl transition-shadow duration-300">
-                <div className="relative h-56 w-full">
-                  <Image
-                    src={event.imageUrl}
-                    alt={event.title}
-                    fill
-                    className="object-cover transition-transform duration-300 group-hover:scale-105"
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    data-ai-hint="school event"
-                  />
-                </div>
                 <CardHeader>
-                  <CardTitle className="group-hover:text-accent transition-colors">{event.title}</CardTitle>
+                  <CardTitle className="group-hover:text-primary transition-colors">{event.title}</CardTitle>
                    <div className="flex items-center gap-2 text-sm text-muted-foreground pt-2">
                     <Calendar className="h-4 w-4" />
                     <span>{new Date(event.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>

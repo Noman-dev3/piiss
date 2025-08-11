@@ -10,7 +10,6 @@ import { getEvents } from "@/lib/data-loader";
 import { createEvent, deleteEvent } from "@/lib/actions";
 import type { Event } from "@/types";
 import { PlusCircle, Trash2 } from "lucide-react";
-import Image from "next/image";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -87,15 +86,9 @@ function EventsPage() {
                 </CardHeader>
                 <CardContent>
                     <form ref={formRef} action={handleAddEventAction} className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                             <div className="space-y-2">
-                                <Label htmlFor="imageUrl">Image File</Label>
-                                <Input id="imageUrl" name="imageUrl" type="file" accept="image/*" required />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="title">Title</Label>
-                                <Input id="title" name="title" placeholder="e.g., Annual Sports Day" required />
-                            </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="title">Title</Label>
+                            <Input id="title" name="title" placeholder="e.g., Annual Sports Day" required />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="date">Date</Label>
@@ -121,9 +114,9 @@ function EventsPage() {
                      <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Image</TableHead>
                                 <TableHead>Title</TableHead>
                                 <TableHead>Date</TableHead>
+                                <TableHead>Description</TableHead>
                                 <TableHead className="text-right">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -134,11 +127,9 @@ function EventsPage() {
                                 </TableRow>
                             ) : events.length > 0 ? events.map(event => (
                                 <TableRow key={event.id}>
-                                    <TableCell>
-                                        <Image src={event.imageUrl} alt={event.title} width={100} height={60} className="rounded-md object-cover" />
-                                    </TableCell>
                                     <TableCell className="font-medium">{event.title}</TableCell>
                                     <TableCell>{new Date(event.date).toLocaleDateString()}</TableCell>
+                                    <TableCell>{event.description}</TableCell>
                                     <TableCell className="text-right">
                                          <AlertDialog>
                                             <AlertDialogTrigger asChild>

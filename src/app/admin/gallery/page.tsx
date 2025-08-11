@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { useEffect, useState, useTransition, useRef, FormEvent } from "react";
+import { useEffect, useState, useTransition, useRef } from "react";
 import { getGalleryImages } from "@/lib/data-loader";
 import { createGalleryImage, deleteGalleryImage } from "@/lib/actions";
 import type { GalleryImage } from "@/types";
@@ -63,9 +63,7 @@ function GalleryPage() {
         });
     }
     
-    const handleAddImageAction = (event: FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-        const formData = new FormData(event.currentTarget);
+    const handleAddImageAction = (formData: FormData) => {
         startTransition(async () => {
             const result = await createGalleryImage(formData);
             if (result.success) {
@@ -85,27 +83,27 @@ function GalleryPage() {
              <Card>
                 <CardHeader>
                     <CardTitle>Add New Image</CardTitle>
-                    <CardDescription>Upload a new image to the website's gallery.</CardDescription>
+                    <CardDescription>Add a new image to the website's gallery using a URL.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <form ref={formRef} onSubmit={handleAddImageAction} className="space-y-4">
+                    <form ref={formRef} action={handleAddImageAction} className="space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                             <div className="space-y-2">
-                                <Label htmlFor="src">Image File</Label>
-                                <Input id="src" name="src" type="file" accept="image/*" required />
+                             <div className="space-y-2 md:col-span-2">
+                                <Label htmlFor="src">Image URL</Label>
+                                <Input id="src" name="src" type="url" placeholder="https://example.com/image.png" required />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="title">Title</Label>
                                 <Input id="title" name="title" placeholder="e.g., Science Fair 2024" required />
                             </div>
+                             <div className="space-y-2">
+                                <Label htmlFor="hint">AI Hint</Label>
+                                <Input id="hint" name="hint" placeholder="e.g., student project" required />
+                            </div>
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="description">Description</Label>
                             <Textarea id="description" name="description" placeholder="A short description of the image." required />
-                        </div>
-                         <div className="space-y-2">
-                            <Label htmlFor="hint">AI Hint</Label>
-                            <Input id="hint" name="hint" placeholder="e.g., student project" required />
                         </div>
                         <Button type="submit" disabled={isPending}>
                             {isPending ? 'Adding...' : <> <PlusCircle className="mr-2" /> Add Image </>}

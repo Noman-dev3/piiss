@@ -86,25 +86,23 @@ function ToppersPage() {
                 </CardHeader>
                 <CardContent>
                     <form ref={formRef} action={handleAddTopperAction} className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                             <div className="space-y-2">
-                                <Label htmlFor="imageUrl">Photo</Label>
-                                <Input id="imageUrl" name="imageUrl" type="file" accept="image/*" required />
-                            </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="imageUrl">Photo URL</Label>
+                            <Input id="imageUrl" name="imageUrl" type="url" placeholder="https://example.com/photo.png" required />
+                        </div>
+                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="name">Name</Label>
                                 <Input id="name" name="name" placeholder="e.g., Aarav Sharma" required />
                             </div>
-                        </div>
-                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                              <div className="space-y-2">
                                 <Label htmlFor="class">Class</Label>
                                 <Input id="class" name="class" placeholder="e.g., Grade 12 - Science" required />
                             </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="percentage">Percentage/Score</Label>
-                                <Input id="percentage" name="percentage" placeholder="e.g., 98.5%" required />
-                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="percentage">Percentage/Score</Label>
+                            <Input id="percentage" name="percentage" placeholder="e.g., 98.5%" required />
                         </div>
                         <Button type="submit" disabled={isPending}>
                             {isPending ? 'Adding...' : <> <PlusCircle className="mr-2" /> Add Topper </>}

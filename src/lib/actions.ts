@@ -6,19 +6,10 @@ import { smartSearch } from '@/ai/flows/smart-search';
 import { getRawData } from './data-loader';
 import { db, storage } from './firebase';
 import { ref, push, serverTimestamp, set, child, get, update, remove } from 'firebase/database';
-import { ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
 import Papa from 'papaparse';
 import type { Student, ReportCard, Teacher, SiteSettings, GalleryImage, Event, Topper, Testimonial, Announcement, FAQ } from '@/types';
 import { sendContactFormEmail, sendAdmissionFormEmail } from '@/lib/email';
 import { revalidatePath } from 'next/cache';
-
-// Helper for file uploads
-const uploadFile = async (file: File, path: string): Promise<string> => {
-  const fileRef = storageRef(storage, `${path}/${Date.now()}-${file.name}`);
-  await uploadBytes(fileRef, file);
-  const downloadURL = await getDownloadURL(fileRef);
-  return downloadURL;
-};
 
 const contactSchema = z.object({
   firstName: z.string().min(2, { message: "First name must be at least 2 characters." }),
@@ -336,9 +327,9 @@ export async function updateSiteSettings(formData: FormData): Promise<UploadResu
     if (!settings.about) settings.about = { story: '', stats: [], imageUrl: '' };
     settings.about.story = data.aboutStory as string;
     
-    const aboutImageFile = formData.get('aboutImage') as File;
-    if (aboutImageFile && aboutImageFile.size > 0) {
-        settings.about.imageUrl = await uploadFile(aboutImageFile, 'settings');
+    const aboutImageUrl = formData.get('aboutImageUrl') as string;
+    if (aboutImageUrl) {
+        settings.about.imageUrl = aboutImageUrl;
     }
     
     if (data.about_stats) {
@@ -363,7 +354,7 @@ export async function updateSiteSettings(formData: FormData): Promise<UploadResu
 }
 
 const galleryImageSchema = z.object({
-    src: z.instanceof(File).refine(file => file.size > 0, { message: "Image is required." }),
+    src: z.string().url("Please provide a valid image URL."),
     title: z.string().min(1, "Title is required."),
     description: z.string().min(1, "Description is required."),
     hint: z.string().min(1, "AI Hint is required."),
@@ -378,13 +369,11 @@ export async function createGalleryImage(formData: FormData): Promise<UploadResu
     }
 
     try {
-        const imageUrl = await uploadFile(validatedData.data.src, 'gallery');
-
         const galleryRef = ref(db, 'gallery');
         const newImageRef = push(galleryRef);
         
         const newImage: Omit<GalleryImage, 'id'> = {
-            src: imageUrl,
+            src: validatedData.data.src,
             alt: validatedData.data.title, // Use title for alt text
             title: validatedData.data.title,
             description: validatedData.data.description,
@@ -405,16 +394,7 @@ export async function createGalleryImage(formData: FormData): Promise<UploadResu
 export async function deleteGalleryImage(id: string): Promise<UploadResult> {
     try {
         const imageRef = ref(db, `gallery/${id}`);
-        const snapshot = await get(imageRef);
-        
-        if (snapshot.exists()) {
-            const imageToDelete = snapshot.val();
-            if (imageToDelete && imageToDelete.src && imageToDelete.src.includes('firebasestorage.googleapis.com')) {
-                const imageStorageRef = storageRef(storage, imageToDelete.src);
-                await deleteObject(imageStorageRef).catch(err => console.error("Could not delete file from storage", err));
-            }
-            await remove(imageRef);
-        }
+        await remove(imageRef);
 
         revalidatePath('/gallery');
         revalidatePath('/admin/gallery');
@@ -429,7 +409,6 @@ const eventSchema = z.object({
     title: z.string().min(1, "Title is required."),
     date: z.string().min(1, "Date is required."),
     description: z.string().min(1, "Description is required."),
-    imageFile: z.instanceof(File).refine(file => file.size > 0, { message: "Image is required." }),
 });
 
 export async function createEvent(formData: FormData): Promise<UploadResult> {
@@ -437,7 +416,6 @@ export async function createEvent(formData: FormData): Promise<UploadResult> {
         title: formData.get('title'),
         date: formData.get('date'),
         description: formData.get('description'),
-        imageFile: formData.get('imageUrl'), // The form uses name="imageUrl" for the file input
     };
     const validatedData = eventSchema.safeParse(rawData);
 
@@ -446,7 +424,6 @@ export async function createEvent(formData: FormData): Promise<UploadResult> {
     }
 
     try {
-        const imageUrl = await uploadFile(validatedData.data.imageFile, 'events');
         const eventRef = ref(db, 'events');
         const newEventRef = push(eventRef);
         
@@ -454,7 +431,6 @@ export async function createEvent(formData: FormData): Promise<UploadResult> {
             title: validatedData.data.title,
             date: validatedData.data.date,
             description: validatedData.data.description,
-            imageUrl: imageUrl
         };
         
         await set(newEventRef, newEvent);
@@ -485,7 +461,7 @@ const topperSchema = z.object({
     name: z.string().min(1, "Name is required."),
     class: z.string().min(1, "Class is required."),
     percentage: z.string().min(1, "Percentage is required."),
-    imageFile: z.instanceof(File).refine(file => file.size > 0, { message: "Image is required." }),
+    imageUrl: z.string().url("Please provide a valid image URL."),
 });
 
 export async function createTopper(formData: FormData): Promise<UploadResult> {
@@ -493,7 +469,7 @@ export async function createTopper(formData: FormData): Promise<UploadResult> {
         name: formData.get('name'),
         class: formData.get('class'),
         percentage: formData.get('percentage'),
-        imageFile: formData.get('imageUrl'),
+        imageUrl: formData.get('imageUrl'),
     };
     const validatedData = topperSchema.safeParse(rawData);
 
@@ -502,7 +478,6 @@ export async function createTopper(formData: FormData): Promise<UploadResult> {
     }
 
     try {
-        const imageUrl = await uploadFile(validatedData.data.imageFile, 'toppers');
         const toppersRef = ref(db, 'toppers');
         const newTopperRef = push(toppersRef);
 
@@ -510,7 +485,7 @@ export async function createTopper(formData: FormData): Promise<UploadResult> {
             name: validatedData.data.name,
             class: validatedData.data.class,
             percentage: validatedData.data.percentage,
-            imageUrl
+            imageUrl: validatedData.data.imageUrl,
         };
         await set(newTopperRef, newTopper);
 
@@ -653,8 +628,7 @@ const teacherSchema = z.object({
   dateJoined: z.string().min(1, 'Date joined is required'),
   salary: z.string().min(1, 'Salary is required'),
   bio: z.string().min(10, 'Biography must be at least 10 characters'),
-  imageUrl: z.string().optional(),
-  imageFile: z.any().optional(),
+  imageUrl: z.string().url("Please provide a valid image URL."),
 });
 
 async function handleTeacher(formData: FormData, isUpdate: boolean): Promise<UploadResult> {
@@ -665,24 +639,13 @@ async function handleTeacher(formData: FormData, isUpdate: boolean): Promise<Upl
         return { success: false, message: validatedData.error.errors.map(e => e.message).join(', ') };
     }
     
-    const { id, imageFile, ...data } = validatedData.data;
-    let imageUrl = data.imageUrl;
-
-    if (imageFile instanceof File && imageFile.size > 0) {
-        imageUrl = await uploadFile(imageFile, 'teachers');
-    }
-
-    if (!isUpdate && !imageUrl) {
-        return { success: false, message: 'An image is required for a new teacher.' };
-    }
+    const { id, ...data } = validatedData.data;
 
     try {
-        const teacherData = { ...data, imageUrl: imageUrl || '' };
-        
         if (isUpdate && id) {
-            await set(ref(db, `teachers/${id}`), teacherData);
+            await set(ref(db, `teachers/${id}`), data);
         } else {
-            await set(ref(db, `teachers/${data.teacherId}`), { ...teacherData, id: data.teacherId });
+            await set(ref(db, `teachers/${data.teacherId}`), { ...data, id: data.teacherId });
         }
         
         revalidatePath('/teachers');

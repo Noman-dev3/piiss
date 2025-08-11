@@ -14,8 +14,6 @@ import { useRouter } from 'next/navigation';
 import { useTransition } from 'react';
 import { Textarea } from '@/components/ui/textarea';
 
-const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
-
 const formSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(1, 'Name is required'),
@@ -29,16 +27,7 @@ const formSchema = z.object({
   dateJoined: z.string().min(1, 'Date joined is required'),
   salary: z.string().min(1, 'Salary is required'),
   bio: z.string().min(10, 'Biography must be at least 10 characters'),
-  imageUrl: z.string().optional(),
-  imageFile: z.any()
-    .refine((file) => !file || file.size > 0, 'Image is required.')
-    .refine(
-        (file) => !file || ACCEPTED_IMAGE_TYPES.includes(file?.type),
-        ".jpg, .jpeg, .png and .webp files are accepted."
-    ).optional(),
-}).refine(data => data.id || data.imageFile, {
-  message: 'Image is required for a new teacher profile.',
-  path: ['imageFile'],
+  imageUrl: z.string().url('Please enter a valid URL for the image.'),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -80,13 +69,7 @@ export function TeacherForm({ initialData }: TeacherFormProps) {
         Object.keys(values).forEach(key => {
             const value = values[key as keyof FormValues];
             if (value !== undefined && value !== null) {
-                 if (key === 'imageFile') {
-                    if (value instanceof File) {
-                        formData.append(key, value);
-                    }
-                } else {
-                    formData.append(key, String(value));
-                }
+                formData.append(key, String(value));
             }
         });
 
@@ -141,18 +124,13 @@ export function TeacherForm({ initialData }: TeacherFormProps) {
             <FormField control={form.control} name="salary" render={({ field }) => (
                 <FormItem><FormLabel>Salary</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
             )} />
-             <FormField control={form.control} name="imageFile" render={({ field }) => (
+             <FormField control={form.control} name="imageUrl" render={({ field }) => (
               <FormItem className="md:col-span-2">
-                <FormLabel>Profile Photo</FormLabel>
+                <FormLabel>Profile Photo URL</FormLabel>
                 <FormControl>
-                    <Input type="file" accept="image/*" onChange={(e) => field.onChange(e.target.files ? e.target.files[0] : null)} />
+                    <Input type="url" placeholder="https://example.com/photo.png" {...field} />
                 </FormControl>
                 <FormMessage />
-                {initialData?.imageUrl && (
-                    <p className="text-xs text-muted-foreground mt-2">
-                        Current image is set. Upload a new file to replace it.
-                    </p>
-                )}
               </FormItem>
             )}
         </div>

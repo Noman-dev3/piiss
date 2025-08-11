@@ -136,8 +136,8 @@ function SettingsPage() {
                         <Textarea id="aboutStory" name="aboutStory" rows={5} value={settings.about?.story} onChange={(e) => setSettings({...settings, about: { ...settings.about!, story: e.target.value }})} />
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="aboutImage">Image File</Label>
-                        <Input id="aboutImage" name="aboutImage" type="file" accept="image/*" />
+                        <Label htmlFor="aboutImageUrl">Image URL</Label>
+                        <Input id="aboutImageUrl" name="aboutImageUrl" type="url" placeholder="https://example.com/image.png" defaultValue={settings.about?.imageUrl} />
                          {settings.about?.imageUrl && (
                             <div className="mt-4">
                                 <p className="text-sm text-muted-foreground mb-2">Current Image:</p>
