@@ -1,41 +1,50 @@
-import Image from 'next/image';
 import type { Teacher } from '@/types';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Briefcase } from 'lucide-react';
-import Link from 'next/link';
+import { User, Star, BookOpen } from 'lucide-react';
 
 interface TeacherCardProps {
   teacher: Teacher;
 }
 
+const DetailRow = ({ label, value }: { label: string, value: string }) => (
+    <div className="flex justify-between items-center">
+        <span className="text-muted-foreground">{label}</span>
+        {label === "Experience" ? (
+             <span className="font-semibold text-primary">{value}</span>
+        ) : (
+             <span className="font-semibold text-foreground text-right">{value}</span>
+        )}
+    </div>
+);
+
 export function TeacherCard({ teacher }: TeacherCardProps) {
   return (
-    <Link href={`/teachers/${teacher.id}`} className="group">
-      <Card className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 h-full flex flex-col">
-        <CardHeader className="flex flex-row items-center gap-4 p-4">
-          <div className="relative h-24 w-24 rounded-full overflow-hidden shrink-0">
-            <Image
-              src={teacher.imageUrl}
-              alt={`Photo of ${teacher.name}`}
-              fill
-              className="object-cover transition-transform duration-300 group-hover:scale-105"
-              sizes="96px"
-              data-ai-hint="teacher portrait"
-            />
-          </div>
-          <div className="space-y-1">
-            <CardTitle className="text-xl group-hover:text-accent transition-colors">{teacher.name}</CardTitle>
-            <Badge variant="secondary" className="bg-accent/20 text-accent-foreground hover:bg-accent/30">{teacher.subject}</Badge>
-          </div>
-        </CardHeader>
-        <CardContent className="p-4 pt-0 flex-grow">
-          <p className="text-sm text-muted-foreground mb-2 flex items-center gap-2">
-              <Briefcase className="w-4 h-4" /> {teacher.experience} of experience
-          </p>
-          <p className="text-sm text-foreground/80">{teacher.bio}</p>
-        </CardContent>
-      </Card>
-    </Link>
+    <Card className="text-center shadow-lg hover:shadow-xl transition-shadow duration-300 bg-background pt-8 pb-6 px-6">
+        <div className="relative inline-block mb-4">
+            <div className="w-28 h-28 rounded-full bg-gradient-to-br from-primary via-purple-500 to-indigo-600 flex items-center justify-center">
+                <User className="w-16 h-16 text-white" />
+            </div>
+            <div className="absolute -top-1 -right-1 bg-yellow-400 p-2 rounded-full shadow-md">
+                <Star className="w-4 h-4 text-white fill-white" />
+            </div>
+        </div>
+
+        <h3 className="text-xl font-bold text-primary">{teacher.name}</h3>
+        <p className="text-sm text-muted-foreground mb-4">{teacher.role}</p>
+
+        <Badge className="bg-primary/10 text-primary hover:bg-primary/20 mb-6">
+            <BookOpen className="mr-2" />
+            {teacher.subject}
+        </Badge>
+      
+      <CardContent className="space-y-4 text-sm text-left p-0">
+          <DetailRow label="Experience" value={teacher.experience} />
+          <hr/>
+          <DetailRow label="Department" value={teacher.department} />
+           <hr/>
+          <DetailRow label="Qualification" value={teacher.qualification} />
+      </CardContent>
+    </Card>
   );
 }

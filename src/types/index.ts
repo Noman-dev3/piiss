@@ -1,9 +1,11 @@
 export interface Teacher {
   id: string;
   name: string;
+  role: string;
   subject: string;
+  department: string;
   experience: string;
-  bio: string;
+  qualification: string;
   imageUrl: string;
 }
 

@@ -11,7 +11,7 @@ function parseCsv<T>(csv: string): T[] {
   const headers = lines[0].split(',').map(h => h.trim());
   
   return lines.slice(1).map(line => {
-    const values = line.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g) || [];
+    const values = line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || [];
     const entry = {} as any;
     headers.forEach((header, i) => {
       let value = values[i] || '';
@@ -27,6 +27,10 @@ function parseCsv<T>(csv: string): T[] {
 const dataCache = new Map<string, any>();
 
 async function loadData<T>(fileName: string, parser?: (content: string) => T): Promise<T> {
+  if (process.env.NODE_ENV === 'development') {
+    dataCache.delete(fileName);
+  }
+
   if (dataCache.has(fileName)) {
     return dataCache.get(fileName);
   }

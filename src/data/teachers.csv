@@ -1,7 +1,7 @@
-id,name,subject,experience,bio,imageUrl
-1,"Dr. Evelyn Reed","Physics","15 years","PhD in Quantum Physics, Dr. Reed is passionate about making complex concepts accessible and inspiring the next generation of scientists.","https://placehold.co/400x400.png"
-2,"Mr. Samuel Chen","History","12 years","A historian with a focus on world cultures, Mr. Chen brings history to life with engaging stories and interactive lessons.","https://placehold.co/400x400.png"
-3,"Ms. Aisha Khan","Mathematics","10 years","Ms. Khan believes in building strong foundational skills and uses innovative methods to make math enjoyable and understandable for all students.","https://placehold.co/400x400.png"
-4,"Mr. Benjamin Carter","Literature","20 years","An avid reader and writer, Mr. Carter fosters a love for literature by exploring classic and contemporary works with his students.","https://placehold.co/400x400.png"
-5,"Ms. Isabella Rossi","Art","8 years","A professional artist, Ms. Rossi encourages creativity and self-expression through various mediums, from painting to digital art.","https://placehold.co/400x400.png"
-6,"Mr. Omar Abdullah","Computer Science","14 years","With a background in software development, Mr. Abdullah equips students with cutting-edge coding skills and a deep understanding of technology.","https://placehold.co/400x400.png"
+id,name,role,subject,department,experience,qualification,imageUrl
+1,"Sarah Johnson","Senior Teacher","Mathematics","Mathematics","8+ years","M.Sc. Mathematics, B.Ed.","https://placehold.co/128x128.png"
+2,"Michael Chen","Department Head","Physics","Science","12+ years","Ph.D. Physics, M.Ed.","https://placehold.co/128x128.png"
+3,"Emily Rodriguez","Teacher","English Literature","Languages","6+ years","M.A. English, B.Ed.","https://placehold.co/128x128.png"
+4,"David Thompson","Senior Teacher","Chemistry","Science","10+ years","M.Sc. Chemistry, B.Ed.","https://placehold.co/128x128.png"
+5,"Jessica Lee","Counselor","Student Wellness","Support Staff","7+ years","M.A. Counseling Psychology","https://placehold.co/128x128.png"
+6,"William Green","Physical Education Instructor","Sports","Physical Education","9+ years","B.P.Ed, M.P.Ed","https://placehold.co/128x128.png"
