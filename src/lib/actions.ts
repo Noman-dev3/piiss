@@ -232,33 +232,60 @@ export async function uploadResultsJson(formData: FormData): Promise<UploadResul
         }
 
         const students = await getStudents();
-        const studentMap = new Map(students.map(s => [s.rollNumber, s.id]));
+        const studentMap = new Map(students.map(s => [s.rollNumber, s]));
 
         const updates: Record<string, any> = {};
+        let newResultsCount = 0;
+        let skippedResultsCount = 0;
 
         for (const result of resultsData) {
             const rollNo = result.roll_number;
-            const studentId = studentMap.get(rollNo);
+            const student = studentMap.get(rollNo);
             
-            if (studentId) {
-                const newResultKey = push(child(ref(db), `students/${studentId}/results`)).key;
-                updates[`/students/${studentId}/results/${newResultKey}`] = result;
+            if (student && student.id) {
+                const existingResults = student.results ? Object.values(student.results) : [];
+                const isDuplicate = existingResults.some(
+                    (existingResult: ReportCard) => existingResult.session === result.session
+                );
+
+                if (isDuplicate) {
+                    skippedResultsCount++;
+                    continue;
+                }
+
+                const newResultKey = push(child(ref(db), `students/${student.id}/results`)).key;
+                if(newResultKey) {
+                    updates[`/students/${student.id}/results/${newResultKey}`] = result;
+                    newResultsCount++;
+                }
             } else {
                 console.warn(`No student found for roll number: ${rollNo}`);
             }
         }
 
-        if (Object.keys(updates).length === 0) {
-             return { success: false, message: 'No matching students found for the results provided.' };
+        if (Object.keys(updates).length > 0) {
+            await update(ref(db), updates);
+        }
+        
+        let message = '';
+        if (newResultsCount > 0) {
+            message += `${newResultsCount} new results uploaded. `;
+        }
+        if (skippedResultsCount > 0) {
+            message += `${skippedResultsCount} duplicate results were skipped.`;
+        }
+        if (newResultsCount === 0 && skippedResultsCount === 0) {
+            message = 'No new results to upload or no matching students found.';
         }
 
-        await update(ref(db), updates);
-        return { success: true, message: 'Results uploaded and linked to students successfully!' };
+        return { success: true, message: message.trim() };
+
     } catch (error: any) {
         console.error(`Error uploading results:`, error);
         return { success: false, message: error.message || 'An error occurred during upload.' };
     }
 }
+
 
 const updateReportCardSchema = z.object({
   studentId: z.string(),
