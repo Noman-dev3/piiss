@@ -5,7 +5,6 @@ export interface Teacher {
   name: string;
   contact: string;
   salary: string;
-  photoPath: string;
   dateJoined: string;
   subject?: string;
   role?: string;

@@ -16,7 +16,7 @@ async function fetchData<T>(path: string): Promise<T[]> {
       // Handle both array-like (gallery) and object-of-objects data structures
       if (Array.isArray(data)) {
         // Firebase stores arrays as objects with integer keys, so filter out nulls if it was sparse
-        return data.filter(item => item !== null);
+        return data.filter(item => item !== null).map((item, index) => ({ ...item, id: String(index) }));
       }
       return Object.keys(data).map(key => ({ ...data[key], id: key }));
     }

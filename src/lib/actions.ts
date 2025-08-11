@@ -157,7 +157,7 @@ const parseCsv = <T>(fileContent: string): Promise<T[]> => {
     });
 }
 
-const fileToAction = async (formData: FormData, dbPath: string, idKey: string, keyMapping?: Record<string, string>): Promise<UploadResult> => {
+const fileToAction = async (formData: FormData, dbPath: string, idKey: string): Promise<UploadResult> => {
     const file = formData.get('file') as File;
     if (!file || file.size === 0) {
         return { success: false, message: 'No file provided.' };
@@ -172,22 +172,7 @@ const fileToAction = async (formData: FormData, dbPath: string, idKey: string, k
         parsedData.forEach((item: any) => {
             const id = item[idKey]?.trim();
             if (id) {
-                const mappedItem: Record<string, any> = { id };
-                if (keyMapping) {
-                    for (const oldKey in item) {
-                        const newKey = keyMapping[oldKey.trim()] || oldKey.trim();
-                        mappedItem[newKey] = item[oldKey];
-                    }
-                } else {
-                    Object.assign(mappedItem, item);
-                }
-                
-                // Special handling for photoPath to imageUrl
-                if (mappedItem.photoPath) {
-                    mappedItem.imageUrl = mappedItem.photoPath;
-                }
-                
-                updates[`${dbPath}/${id}`] = mappedItem;
+                updates[`${dbPath}/${id}`] = { ...item, id };
             }
         });
         
@@ -208,34 +193,11 @@ const fileToAction = async (formData: FormData, dbPath: string, idKey: string, k
 };
 
 export async function uploadTeachersCsv(formData: FormData): Promise<UploadResult> {
-    const keyMapping = {
-        'Teacher_ID': 'teacherId',
-        'Name': 'name',
-        'Contact': 'contact',
-        'Salary': 'salary',
-        'Photo_Path': 'photoPath',
-        'Date_Joined': 'dateJoined',
-        'Subject': 'subject',
-        'Role': 'role',
-        'Experience': 'experience',
-        'Department': 'department',
-        'Qualification': 'qualification',
-        'Bio': 'bio'
-    };
-    return fileToAction(formData, 'teachers', 'Teacher_ID', keyMapping);
+    return fileToAction(formData, 'teachers', 'teacherId');
 }
 
-
 export async function uploadStudentsCsv(formData: FormData): Promise<UploadResult> {
-    const keyMapping = {
-        'Name': 'name',
-        'Roll_Number': 'rollNumber',
-        'Class': 'class',
-        'Gender': 'gender',
-        'Contact': 'contact',
-        'Address': 'address'
-    };
-    return fileToAction(formData, 'students', 'Roll_Number', keyMapping);
+    return fileToAction(formData, 'students', 'rollNumber');
 }
 
 
@@ -390,9 +352,7 @@ export async function updateSiteSettings(formData: FormData): Promise<UploadResu
     try {
         await set(ref(db, 'settings'), settings);
         
-        revalidatePath('/');
-        revalidatePath('/about');
-        revalidatePath('/contact');
+        revalidatePath('/', 'layout');
         revalidatePath('/admin/settings');
 
         return { success: true, message: 'Site settings updated successfully.' };
@@ -531,7 +491,7 @@ export async function deleteGalleryImage(id: string): Promise<UploadResult> {
         
         if (snapshot.exists()) {
             const imageToDelete = snapshot.val();
-            if (imageToDelete && imageToDelete.src.includes('firebasestorage.googleapis.com')) {
+            if (imageToDelete && imageToDelete.src && imageToDelete.src.includes('firebasestorage.googleapis.com')) {
                 const imageStorageRef = storageRef(storage, imageToDelete.src);
                 await deleteObject(imageStorageRef).catch(err => console.error("Could not delete file from storage", err));
             }
@@ -759,4 +719,78 @@ export async function deleteFaq(id: string): Promise<UploadResult> {
         revalidatePath('/admin/faq');
         return { success: true, message: 'FAQ deleted.' };
     } catch (e: any) { return { success: false, message: e.message } }
+}
+
+
+const teacherSchema = z.object({
+  id: z.string().optional(),
+  name: z.string().min(1, 'Name is required'),
+  teacherId: z.string().min(1, 'Teacher ID is required'),
+  subject: z.string().min(1, 'Subject is required'),
+  role: z.string().min(1, 'Role is required'),
+  qualification: z.string().min(1, 'Qualification is required'),
+  experience: z.string().min(1, 'Experience is required'),
+  department: z.string().min(1, 'Department is required'),
+  contact: z.string().min(1, 'Contact number is required'),
+  dateJoined: z.string().min(1, 'Date joined is required'),
+  salary: z.string().min(1, 'Salary is required'),
+  bio: z.string().min(10, 'Biography must be at least 10 characters'),
+  imageUrl: z.string().optional(),
+  imageFile: z.any().optional(),
+});
+
+async function handleTeacher(formData: FormData, isUpdate: boolean): Promise<UploadResult> {
+    const rawData = Object.fromEntries(formData);
+    const validatedData = teacherSchema.safeParse(rawData);
+
+    if (!validatedData.success) {
+        return { success: false, message: validatedData.error.errors.map(e => e.message).join(', ') };
+    }
+    
+    const { id, imageFile, ...data } = validatedData.data;
+    let imageUrl = data.imageUrl;
+
+    if (imageFile instanceof File && imageFile.size > 0) {
+        imageUrl = await uploadFile(imageFile, 'teachers');
+    }
+
+    if (!isUpdate && !imageUrl) {
+        return { success: false, message: 'An image is required for a new teacher.' };
+    }
+
+    try {
+        const teacherData = { ...data, imageUrl: imageUrl || '' };
+        
+        if (isUpdate && id) {
+            await set(ref(db, `teachers/${id}`), teacherData);
+        } else {
+            await set(ref(db, `teachers/${data.teacherId}`), { ...teacherData, id: data.teacherId });
+        }
+        
+        revalidatePath('/teachers');
+        revalidatePath('/admin/teachers');
+        const message = isUpdate ? 'Teacher updated successfully.' : 'Teacher created successfully.';
+        return { success: true, message };
+    } catch (error: any) {
+        return { success: false, message: error.message || 'An error occurred.' };
+    }
+}
+
+export async function createTeacher(formData: FormData): Promise<UploadResult> {
+    return handleTeacher(formData, false);
+}
+
+export async function updateTeacher(formData: FormData): Promise<UploadResult> {
+    return handleTeacher(formData, true);
+}
+
+export async function deleteTeacher(id: string): Promise<UploadResult> {
+    try {
+        await remove(ref(db, `teachers/${id}`));
+        revalidatePath('/teachers');
+        revalidatePath('/admin/teachers');
+        return { success: true, message: 'Teacher deleted successfully.' };
+    } catch (error: any) {
+        return { success: false, message: error.message || 'An error occurred.' };
+    }
 }
