@@ -105,21 +105,21 @@ function SettingsPage() {
                     <div className="grid md:grid-cols-2 gap-6">
                         <div className="space-y-2">
                             <Label htmlFor="siteName">School Name</Label>
-                            <Input id="siteName" name="siteName" defaultValue={settings.siteName} />
+                            <Input id="siteName" name="siteName" value={settings.siteName} onChange={(e) => setSettings({...settings, siteName: e.target.value})} />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="tagline">Tagline / Motto</Label>
-                            <Input id="tagline" name="tagline" defaultValue={settings.tagline} />
+                            <Input id="tagline" name="tagline" value={settings.tagline} onChange={(e) => setSettings({...settings, tagline: e.target.value})} />
                         </div>
                     </div>
                      <div className="grid md:grid-cols-2 gap-6">
                         <div className="space-y-2">
                             <Label htmlFor="phone">Phone Number</Label>
-                            <Input id="phone" name="phone" defaultValue={settings.phone} />
+                            <Input id="phone" name="phone" value={settings.phone} onChange={(e) => setSettings({...settings, phone: e.target.value})} />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="address">Address</Label>
-                            <Input id="address" name="address" defaultValue={settings.address} />
+                            <Input id="address" name="address" value={settings.address} onChange={(e) => setSettings({...settings, address: e.target.value})} />
                         </div>
                     </div>
                 </CardContent>
@@ -133,7 +133,7 @@ function SettingsPage() {
                 <CardContent className="space-y-6">
                     <div className="space-y-2">
                         <Label htmlFor="aboutStory">Story / Description</Label>
-                        <Textarea id="aboutStory" name="aboutStory" rows={5} defaultValue={settings.about?.story} />
+                        <Textarea id="aboutStory" name="aboutStory" rows={5} value={settings.about?.story} onChange={(e) => setSettings({...settings, about: { ...settings.about!, story: e.target.value }})} />
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="aboutImage">Image File</Label>
