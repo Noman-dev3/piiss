@@ -1,60 +1,67 @@
 import Link from 'next/link';
-import Image from 'next/image';
-import { getNews } from '@/lib/data-loader';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { getEvents } from '@/lib/data-loader';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
+import Image from 'next/image';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Calendar } from 'lucide-react';
 
 export async function NewsAndEvents() {
-  const allNews = await getNews();
-  const latestNews = allNews.slice(0, 3);
+  const allEvents = await getEvents();
+  const latestEvents = allEvents.slice(0, 3);
 
   return (
-    <section id="news" className="py-16 md:py-24 bg-card">
+    <section id="events" className="py-16 md:py-24 bg-background">
       <div className="container mx-auto max-w-7xl px-4">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12">
-            <div className="space-y-4 mb-6 md:mb-0">
-                <h2 className="text-3xl md:text-4xl font-bold text-primary">
-                Latest News & Announcements
-                </h2>
-                <p className="text-lg text-muted-foreground max-w-2xl">
-                Stay updated with the latest happenings and important announcements from PIISS.
-                </p>
-            </div>
-            <Button asChild variant="outline">
-                <Link href="/news">
-                View All News <ArrowRight className="ml-2 h-4 w-4"/>
-                </Link>
-            </Button>
+        <div className="text-center space-y-4 mb-12">
+          <h2 className="text-4xl md:text-5xl font-bold font-serif text-foreground">
+            Upcoming Events
+          </h2>
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            Stay updated with our latest school activities and programs
+          </p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {latestNews.map((newsItem) => (
-            <Card key={newsItem.id} className="overflow-hidden group">
-              <Link href={`/news/${newsItem.id}`}>
-                <div className="relative h-56 w-full">
-                  <Image
-                    src={newsItem.imageUrl}
-                    alt={newsItem.title}
-                    fill
-                    className="object-cover transition-transform duration-300 group-hover:scale-105"
-                    data-ai-hint="news event"
-                  />
-                </div>
-                <CardHeader>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Badge variant="secondary">{newsItem.category}</Badge>
-                    <span>{new Date(newsItem.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+        {latestEvents.length > 0 ? (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {latestEvents.map((event) => (
+                <Card key={event.id} className="overflow-hidden group flex flex-col hover:shadow-xl transition-shadow duration-300">
+                  <div className="relative h-56 w-full">
+                    <Image
+                      src={event.imageUrl}
+                      alt={event.title}
+                      fill
+                      className="object-cover transition-transform duration-300 group-hover:scale-105"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      data-ai-hint="school event"
+                    />
                   </div>
-                  <CardTitle className="mt-2 group-hover:text-accent">{newsItem.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">{newsItem.excerpt}</p>
-                </CardContent>
-              </Link>
-            </Card>
-          ))}
-        </div>
+                  <CardHeader>
+                    <CardTitle className="group-hover:text-primary transition-colors">{event.title}</CardTitle>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground pt-2">
+                      <Calendar className="h-4 w-4" />
+                      <span>{new Date(event.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="flex-grow">
+                    <p className="text-sm text-muted-foreground">{event.description}</p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+             <div className="text-center mt-12">
+                <Button asChild variant="outline">
+                    <Link href="/events">
+                    View All Events <ArrowRight className="ml-2 h-4 w-4"/>
+                    </Link>
+                </Button>
+            </div>
+          </>
+        ) : (
+          <div className="text-center text-muted-foreground py-8">
+            No upcoming events scheduled at the moment.
+          </div>
+        )}
       </div>
     </section>
   );
