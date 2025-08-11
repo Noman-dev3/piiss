@@ -125,9 +125,9 @@ type UploadResult = {
     message: string;
 }
 
-const parseCsv = <T>(file: File): Promise<T[]> => {
+const parseCsv = <T>(fileContent: string): Promise<T[]> => {
     return new Promise((resolve, reject) => {
-        Papa.parse<T>(file, {
+        Papa.parse<T>(fileContent, {
             header: true,
             skipEmptyLines: true,
             complete: (results) => {
@@ -153,8 +153,9 @@ const fileToAction = async (formData: FormData, dbPath: string, idKey: string, k
     try {
         let dataToUpload: Record<string, any> = {};
         
+        const fileContent = await file.text();
+        
         if (file.type === 'application/json') {
-             const fileContent = await file.text();
              const parsedData = JSON.parse(fileContent);
              parsedData.forEach((item: any) => {
                 const id = item[idKey];
@@ -163,7 +164,7 @@ const fileToAction = async (formData: FormData, dbPath: string, idKey: string, k
                 }
              });
         } else {
-            const parsedData = await parseCsv<any>(file);
+            const parsedData = await parseCsv<any>(fileContent);
             parsedData.forEach((item: any) => {
                 const id = item[idKey];
                 if (id) {
