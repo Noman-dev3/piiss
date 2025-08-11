@@ -2,19 +2,19 @@
 import { AuthProvider } from '@/hooks/use-auth';
 import { SidebarProvider, Sidebar, SidebarHeader, SidebarTrigger, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter } from '@/components/ui/sidebar';
 import { Logo } from '@/components/shared/Logo';
-import { Home, Newspaper, Users, GraduationCap, Settings, LogOut, GalleryHorizontal, FileUp, ShieldCheck, FileText } from 'lucide-react';
-import { MainNav } from './_components/main-nav';
+import { LayoutDashboard, Users, GraduationCap, Settings, LogOut, FileText, UserPlus, BookCopy } from 'lucide-react';
 import { UserNav } from './_components/user-nav';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/use-auth';
 
 const menuItems = [
-    { href: '/admin/dashboard', label: 'Dashboard', icon: <Home /> },
-    { href: '/admin/teachers', label: 'Teachers', icon: <Users /> },
+    { href: '/admin/dashboard', label: 'Dashboard', icon: <LayoutDashboard /> },
     { href: '/admin/students', label: 'Students', icon: <GraduationCap /> },
+    { href: '/admin/teachers', label: 'Teachers', icon: <Users /> },
     { href: '/admin/results', label: 'Results', icon: <FileText /> },
-    { href: '/admin/settings', label: 'Site Settings', icon: <Settings /> },
+    { href: '/admin/admissions', label: 'Admissions', icon: <UserPlus /> },
+    { href: '/admin/settings', label: 'Settings', icon: <Settings /> },
 ]
 
 export default function AdminLayout({
@@ -29,7 +29,7 @@ export default function AdminLayout({
         <SidebarProvider>
             <Sidebar>
                 <SidebarHeader>
-                    <Logo />
+                    <Logo isAdmin={true}/>
                 </SidebarHeader>
                 <SidebarContent>
                     <SidebarMenu>
@@ -59,13 +59,13 @@ export default function AdminLayout({
                     </SidebarMenu>
                 </SidebarFooter>
             </Sidebar>
-            <main className="flex-1">
-                <div className="border-b">
+            <main className="flex-1 bg-muted/40">
+                <div className="border-b bg-background">
                     <div className="flex h-16 items-center px-4 sm:px-8">
                         <div className="flex items-center gap-2">
                             <SidebarTrigger className="md:hidden" />
                              <h1 className="text-xl font-semibold tracking-tight hidden md:block">
-                                {menuItems.find(item => item.href.startsWith(pathname))?.label || 'Admin'}
+                                {menuItems.find(item => pathname.startsWith(item.href))?.label || 'Admin'}
                             </h1>
                         </div>
                         <div className="ml-auto flex items-center space-x-4">
@@ -73,7 +73,7 @@ export default function AdminLayout({
                         </div>
                     </div>
                 </div>
-                <div className="space-y-4 p-4 sm:p-8 pt-6">
+                <div className="space-y-6 p-4 sm:p-8 pt-6">
                     {children}
                 </div>
             </main>
