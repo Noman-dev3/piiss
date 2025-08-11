@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
 import { createTeacher, updateTeacher } from '@/lib/actions';
-import { Teacher } from '@/types';
+import type { Teacher } from '@/types';
 import { useRouter } from 'next/navigation';
 import { useTransition } from 'react';
 import { Textarea } from '@/components/ui/textarea';
