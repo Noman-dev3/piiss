@@ -1,9 +1,10 @@
+
 'use client';
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ChevronDown, Menu, Search, User } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { Logo } from './Logo';
 import { Button } from '@/components/ui/button';
@@ -21,6 +22,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { getSiteSettings } from '@/lib/data-loader';
+import type { SiteSettings } from '@/types';
 
 const navLinks = [
   { href: '/', label: 'Home' },
@@ -78,12 +81,17 @@ function NavLink({ href, label, currentPath, dropdown, closeMenu }: { href: stri
 export function Header() {
   const pathname = usePathname();
   const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [settings, setSettings] = useState<SiteSettings | null>(null);
+
+  useEffect(() => {
+    getSiteSettings().then(setSettings);
+  }, []);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex h-20 max-w-7xl items-center justify-between px-4">
         <div className="flex items-center gap-8">
-            <Logo />
+            <Logo siteName={settings?.siteName} siteTagline={settings?.tagline} />
              <nav className="hidden items-center gap-6 lg:flex">
                 {navLinks.map((link) => (
                     <NavLink key={link.href} {...link} currentPath={pathname} />
@@ -114,7 +122,7 @@ export function Header() {
             <SheetContent side="left">
                <SheetTitle className="sr-only">Mobile Menu</SheetTitle>
               <SheetHeader>
-                <Logo />
+                <Logo siteName={settings?.siteName} siteTagline={settings?.tagline} />
               </SheetHeader>
               <div className="mt-8 flex flex-col gap-4">
                 <form action="/search" method="GET" className="relative w-full">

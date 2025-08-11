@@ -1,7 +1,33 @@
 
 {
-  "fullName": "Pakistan Islamic International School System",
-  "tagline": "Shaping Minds, Building Futures",
+  "siteName": "PIISS",
+  "tagline": "Excellence in Education, Foundation for Life",
   "phone": "+92-000-0000000",
-  "address": "Pakistan"
+  "address": "Pakistan",
+  "about": {
+    "story": "At PIISS, we believe in providing quality education that shapes not just academic excellence but also character development. Our dedicated faculty and state-of-the-art facilities ensure that every student receives the best learning experience.",
+    "stats": [
+      { "value": "2500+", "label": "Students" },
+      { "value": "150+", "label": "Teachers" },
+      { "value": "98%", "label": "Success Rate" },
+      { "value": "35+", "label": "Years" }
+    ]
+  },
+  "missionVision": [
+    {
+      "title": "Our Mission",
+      "description": "To foster a dynamic learning environment that challenges students to achieve their full potential and become compassionate, responsible global citizens.",
+      "icon": "Target"
+    },
+    {
+      "title": "Our Vision",
+      "description": "To be a leading educational institution recognized for innovation, academic excellence, and the holistic development of every student.",
+      "icon": "Eye"
+    },
+    {
+      "title": "Our Values",
+      "description": "We are committed to integrity, respect, collaboration, and a lifelong passion for learning, creating a strong foundation for success.",
+      "icon": "Award"
+    }
+  ]
 }

@@ -3,7 +3,7 @@
 
 import { db } from './firebase';
 import { ref, get, child } from 'firebase/database';
-import type { Teacher, Student, ReportCard, News, GalleryImage, Announcement, Topper, Testimonial, Event, FAQ } from '@/types';
+import type { Teacher, Student, ReportCard, News, GalleryImage, Announcement, Topper, Testimonial, Event, FAQ, SiteSettings } from '@/types';
 
 
 // Helper function to fetch data from a path in Realtime Database
@@ -52,6 +52,30 @@ export const getFaqs = async () => fetchData<FAQ>('faq');
 
 export const getSingleNews = async (id: string) => fetchSingleItem<News>('news', id);
 export const getSingleTeacher = async (id: string) => fetchSingleItem<Teacher>('teachers', id);
+
+export const getSiteSettings = async (): Promise<SiteSettings> => {
+    try {
+        const snapshot = await get(ref(db, 'settings'));
+        if (snapshot.exists()) {
+            return snapshot.val();
+        }
+        // Return a default structure if no settings are found
+        return {
+            siteName: "PIISS",
+            tagline: "Excellence in Education",
+            phone: "",
+            address: "",
+            about: {
+                story: "",
+                stats: [],
+            },
+            missionVision: [],
+        };
+    } catch (error) {
+        console.error("Error fetching site settings:", error);
+        throw error;
+    }
+}
 
 export const getAllReportCards = async (): Promise<(ReportCard & { studentName: string, studentRollNo: string, studentId: string })[]> => {
     const students = await getStudents();
@@ -104,12 +128,12 @@ export const getRawData = async () => {
       getNews(),
       getFaqs(),
       getAnnouncements(),
-      get(ref(db, 'siteSettings')),
+      getSiteSettings(),
       get(ref(db, 'publicResultsMetadata')),
     ]);
 
     return {
-      siteSettings: JSON.stringify(siteSettings.val() || {}),
+      siteSettings: JSON.stringify(siteSettings || {}),
       eventsData: JSON.stringify(events),
       newsData: JSON.stringify(news),
       teachersData: JSON.stringify(teachers),

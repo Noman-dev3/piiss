@@ -1,4 +1,5 @@
 
+
 export interface Teacher {
   id: string;
   teacherId: string;
@@ -41,10 +42,6 @@ export interface ReportCard {
   percentage: number;
   grade: string;
   date_created: string;
-  term?: string;
-  year?: number;
-  attendance?: string;
-  teacher_remarks?: string;
 }
 
 
@@ -100,4 +97,23 @@ export interface FAQ {
     id: number;
     question: string;
     answer: string;
+}
+
+export interface SiteSettings {
+  siteName: string;
+  tagline: string;
+  phone: string;
+  address: string;
+  about: {
+    story: string;
+    stats: {
+      value: string;
+      label: string;
+    }[];
+  };
+  missionVision: {
+    title: string;
+    description: string;
+    icon: string;
+  }[];
 }

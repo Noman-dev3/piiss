@@ -1,7 +1,9 @@
+
 import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { Poppins } from 'next/font/google';
+import { getSiteSettings } from '@/lib/data-loader';
 
 const poppins = Poppins({
   subsets: ['latin'],
@@ -9,10 +11,13 @@ const poppins = Poppins({
   variable: '--font-body',
 });
 
-export const metadata: Metadata = {
-  title: 'Greenfield International School',
-  description: 'Excellence in Education',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getSiteSettings();
+  return {
+    title: settings.siteName,
+    description: settings.tagline,
+  }
+}
 
 export default function RootLayout({
   children,

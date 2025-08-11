@@ -1,15 +1,13 @@
+
 import { GraduationCap } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
+import { getSiteSettings } from '@/lib/data-loader';
 
-const stats = [
-    { value: '2500+', label: 'Students', color: 'text-blue-500' },
-    { value: '150+', label: 'Teachers', color: 'text-green-500' },
-    { value: '98%', label: 'Success Rate', color: 'text-primary' },
-    { value: '35+', label: 'Years', color: 'text-orange-500' },
-];
+export async function AboutSection() {
+  const settings = await getSiteSettings();
+  const { story, stats } = settings.about;
 
-export function AboutSection() {
   return (
     <section id="about" className="py-16 md:py-32 bg-background">
       <div className="container mx-auto max-w-7xl px-4">
@@ -25,16 +23,13 @@ export function AboutSection() {
             </h2>
 
             <p className="text-muted-foreground leading-relaxed">
-              At Greenfield International School, we believe in providing quality education
-              that shapes not just academic excellence but also character development. Our
-              dedicated faculty and state-of-the-art facilities ensure that every student
-              receives the best learning experience.
+              {story}
             </p>
 
             <div className="grid grid-cols-2 gap-y-8">
               {stats.map((stat) => (
                 <div key={stat.label}>
-                  <p className={`text-4xl font-bold ${stat.color}`}>{stat.value}</p>
+                  <p className={`text-4xl font-bold text-primary`}>{stat.value}</p>
                   <p className="text-sm text-muted-foreground mt-1">{stat.label}</p>
                 </div>
               ))}

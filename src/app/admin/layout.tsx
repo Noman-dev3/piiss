@@ -1,31 +1,27 @@
+
 'use client';
-import { AuthProvider } from '@/hooks/use-auth';
+import { AuthProvider, useAuth } from '@/hooks/use-auth';
 import { SidebarProvider, Sidebar, SidebarHeader, SidebarTrigger, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarFooter } from '@/components/ui/sidebar';
 import { Logo } from '@/components/shared/Logo';
-import { LayoutDashboard, Users, GraduationCap, Settings, LogOut, FileText, UserPlus, BookCopy } from 'lucide-react';
+import { LayoutDashboard, Users, GraduationCap, Settings, LogOut, FileText, UserPlus } from 'lucide-react';
 import { UserNav } from './_components/user-nav';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { useAuth } from '@/hooks/use-auth';
 
 const menuItems = [
     { href: '/admin/dashboard', label: 'Dashboard', icon: <LayoutDashboard /> },
+    { href: '/admin/admissions', label: 'Admissions', icon: <UserPlus /> },
     { href: '/admin/students', label: 'Students', icon: <GraduationCap /> },
     { href: '/admin/teachers', label: 'Teachers', icon: <Users /> },
     { href: '/admin/results', label: 'Results', icon: <FileText /> },
-    { href: '/admin/admissions', label: 'Admissions', icon: <UserPlus /> },
     { href: '/admin/settings', label: 'Settings', icon: <Settings /> },
 ]
 
-export default function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+function AdminLayoutContent({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
     const { logout } = useAuth();
-  return (
-    <AuthProvider>
+
+    return (
         <SidebarProvider>
             <Sidebar>
                 <SidebarHeader>
@@ -37,7 +33,7 @@ export default function AdminLayout({
                              <SidebarMenuItem key={item.href}>
                                 <Link href={item.href} className="w-full">
                                     <SidebarMenuButton 
-                                        isActive={pathname === item.href}
+                                        isActive={pathname.startsWith(item.href)}
                                         tooltip={item.label}
                                     >
                                         {item.icon}
@@ -59,8 +55,8 @@ export default function AdminLayout({
                     </SidebarMenu>
                 </SidebarFooter>
             </Sidebar>
-            <main className="flex-1 bg-muted/40">
-                <div className="border-b bg-background">
+            <main className="flex-1 bg-muted/40 overflow-y-auto">
+                <div className="border-b bg-background sticky top-0 z-10">
                     <div className="flex h-16 items-center px-4 sm:px-8">
                         <div className="flex items-center gap-2">
                             <SidebarTrigger className="md:hidden" />
@@ -78,6 +74,17 @@ export default function AdminLayout({
                 </div>
             </main>
       </SidebarProvider>
-    </AuthProvider>
-  );
+    );
+}
+
+export default function AdminLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+    return (
+        <AuthProvider>
+            <AdminLayoutContent>{children}</AdminLayoutContent>
+        </AuthProvider>
+    )
 }

@@ -2,16 +2,19 @@
 import Link from 'next/link';
 import { Logo } from './Logo';
 import { Facebook, Twitter, Instagram } from 'lucide-react';
+import { getSiteSettings } from '@/lib/data-loader';
 
-export function Footer() {
+export async function Footer() {
+  const settings = await getSiteSettings();
+
   return (
     <footer className="border-t bg-card">
       <div className="container mx-auto max-w-7xl px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="space-y-4">
-            <Logo />
+            <Logo siteName={settings.siteName} siteTagline={settings.tagline}/>
             <p className="text-sm text-muted-foreground">
-              Shaping Minds, Building Futures.
+              {settings.tagline}
             </p>
           </div>
           <div>
@@ -27,9 +30,9 @@ export function Footer() {
           <div>
             <h3 className="font-semibold text-primary">Contact Us</h3>
             <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
-              <li>Pakistan</li>
+              <li>{settings.address}</li>
               <li>noman.dev3@gmail.com</li>
-              <li>+92-000-0000000</li>
+              <li>{settings.phone}</li>
             </ul>
           </div>
           <div>
@@ -42,7 +45,7 @@ export function Footer() {
           </div>
         </div>
         <div className="mt-8 border-t pt-4 text-center text-sm text-muted-foreground">
-          &copy; {new Date().getFullYear()} PIISS. All Rights Reserved.
+          &copy; {new Date().getFullYear()} {settings.siteName}. All Rights Reserved.
         </div>
       </div>
     </footer>

@@ -3,12 +3,13 @@
 
 import { z } from 'zod';
 import { smartSearch } from '@/ai/flows/smart-search';
-import { getRawData, getStudents } from './data-loader';
+import { getRawData } from './data-loader';
 import { db } from './firebase';
 import { ref, push, serverTimestamp, set, child, get, update } from 'firebase/database';
 import Papa from 'papaparse';
-import type { Student, ReportCard, Teacher } from '@/types';
+import type { Student, ReportCard, Teacher, SiteSettings } from '@/types';
 import { sendContactFormEmail, sendAdmissionFormEmail } from '@/lib/email';
+import { revalidatePath } from 'next/cache';
 
 const contactSchema = z.object({
   firstName: z.string().min(2, { message: "First name must be at least 2 characters." }),
@@ -251,8 +252,10 @@ export async function uploadResultsJson(formData: FormData): Promise<UploadResul
             const studentSnapshot = await get(child(ref(db), `students/${rollNo}`));
             
             if (studentSnapshot.exists()) {
-                const student = {id: studentSnapshot.key, ...studentSnapshot.val()};
-                const existingResults = student.results ? Object.values(student.results) : [];
+                const studentData = studentSnapshot.val();
+                const studentId = studentSnapshot.key;
+                const existingResults = studentData.results ? Object.values(studentData.results) : [];
+                
                 const isDuplicate = existingResults.some(
                     (existingResult: any) => existingResult.session === result.session
                 );
@@ -262,9 +265,9 @@ export async function uploadResultsJson(formData: FormData): Promise<UploadResul
                     continue;
                 }
 
-                const newResultKey = push(child(ref(db), `students/${student.id}/results`)).key;
+                const newResultKey = push(child(ref(db), `students/${studentId}/results`)).key;
                 if(newResultKey) {
-                    updates[`/students/${student.id}/results/${newResultKey}`] = result;
+                    updates[`/students/${studentId}/results/${newResultKey}`] = result;
                     newResultsCount++;
                 }
             } else {
@@ -323,7 +326,6 @@ export async function updateReportCard(values: z.infer<typeof updateReportCardSc
     try {
         const reportCardRef = ref(db, `students/${studentId}/results/${resultId}`);
         
-        // Convert array of subjects back to an object
         const subjectsAsObject = subjects.reduce((acc, subject) => {
             acc[subject.name] = subject.marks;
             return acc;
@@ -331,13 +333,64 @@ export async function updateReportCard(values: z.infer<typeof updateReportCardSc
 
         await update(reportCardRef, {
             ...restOfData,
-            roll_number: restOfData.rollNumber, // Ensure the key is correct in DB
+            roll_number: restOfData.rollNumber, 
             subjects: subjectsAsObject,
         });
 
         return { success: true, message: 'Report card updated successfully.' };
     } catch (error: any) {
         console.error('Error updating report card:', error);
+        return { success: false, message: error.message || 'An unexpected error occurred.' };
+    }
+}
+
+export async function updateSiteSettings(formData: FormData): Promise<UploadResult> {
+    const data = Object.fromEntries(formData.entries());
+    
+    const settings: Partial<SiteSettings> = {
+        siteName: data.siteName as string,
+        tagline: data.tagline as string,
+        phone: data.phone as string,
+        address: data.address as string,
+        about: {
+            story: data.aboutStory as string,
+            stats: [],
+        },
+        missionVision: [],
+    };
+
+    // Reconstruct stats array
+    for (let i = 0; i < 4; i++) {
+        if (data[`stat_value_${i}`] && data[`stat_label_${i}`]) {
+            settings.about!.stats.push({
+                value: data[`stat_value_${i}`] as string,
+                label: data[`stat_label_${i}`] as string,
+            });
+        }
+    }
+    
+    // Reconstruct mission/vision array
+    for (let i = 0; i < 3; i++) {
+         if (data[`mv_title_${i}`] && data[`mv_description_${i}`]) {
+            settings.missionVision!.push({
+                title: data[`mv_title_${i}`] as string,
+                description: data[`mv_description_${i}`] as string,
+                icon: '' // Icon is not editable from here for now
+            });
+        }
+    }
+
+    try {
+        await set(ref(db, 'settings'), settings);
+        
+        // Revalidate paths where this data is used
+        revalidatePath('/');
+        revalidatePath('/about');
+        revalidatePath('/contact');
+
+        return { success: true, message: 'Site settings updated successfully.' };
+    } catch (error: any) {
+        console.error('Error updating site settings:', error);
         return { success: false, message: error.message || 'An unexpected error occurred.' };
     }
 }
