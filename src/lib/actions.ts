@@ -131,6 +131,7 @@ const parseCsv = <T>(fileContent: string): Promise<T[]> => {
         Papa.parse<T>(fileContent, {
             header: true,
             skipEmptyLines: true,
+            transformHeader: header => header.trim(),
             complete: (results) => {
                 if(results.errors.length) {
                     reject(new Error(results.errors.map(e => e.message).join(', ')));
@@ -152,39 +153,29 @@ const fileToAction = async (formData: FormData, dbPath: string, idKey: string, k
     }
 
     try {
-        let dataToUpload: Record<string, any> = {};
-        
         const fileContent = await file.text();
+        const parsedData = await parseCsv<any>(fileContent);
         
-        if (file.type === 'application/json') {
-             const parsedData = JSON.parse(fileContent);
-             parsedData.forEach((item: any) => {
-                const id = item[idKey];
-                if (id) {
-                    dataToUpload[id] = item;
-                }
-             });
-        } else {
-            const parsedData = await parseCsv<any>(fileContent);
-            parsedData.forEach((item: any) => {
-                const id = item[idKey];
-                if (id) {
-                    if (keyMapping) {
-                        const newItem: Record<string, any> = {};
-                        for (const oldKey in item) {
-                            const newKey = keyMapping[oldKey] || oldKey;
-                            newItem[newKey] = item[oldKey];
-                        }
-                        dataToUpload[id] = newItem;
-                    } else {
-                       dataToUpload[id] = item;
+        const dataToUpload: Record<string, any> = {};
+        
+        parsedData.forEach((item: any) => {
+            const id = item[idKey]?.trim();
+            if (id) {
+                 if (keyMapping) {
+                    const newItem: Record<string, any> = {};
+                    for (const oldKey in item) {
+                        const newKey = keyMapping[oldKey.trim()] || oldKey.trim();
+                        newItem[newKey] = item[oldKey];
                     }
+                    dataToUpload[id] = newItem;
+                } else {
+                   dataToUpload[id] = item;
                 }
-            });
-        }
+            }
+        });
         
         if (Object.keys(dataToUpload).length === 0) {
-            return { success: false, message: `CSV/JSON must contain a "${idKey}" column/property for each entry.` };
+            return { success: false, message: `CSV must contain a "${idKey}" column for each entry.` };
         }
 
         const dbRef = ref(db, dbPath);
@@ -229,10 +220,11 @@ export async function uploadResultsJson(formData: FormData): Promise<UploadResul
 
     try {
         const fileContent = await file.text();
-        const resultsData: ReportCard[] = JSON.parse(fileContent);
+        let resultsData: ReportCard[] | ReportCard = JSON.parse(fileContent);
 
+        // If the file contains a single object, wrap it in an array
         if (!Array.isArray(resultsData)) {
-            return { success: false, message: 'JSON file should contain an array of result objects.' };
+            resultsData = [resultsData];
         }
 
         const students = await getStudents();
