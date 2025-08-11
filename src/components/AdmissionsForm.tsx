@@ -22,19 +22,19 @@ function SubmitButton() {
 }
 
 export function AdmissionsForm() {
-  const initialState: FormState = { message: '' };
+  const initialState: FormState = { success: false, message: '' };
   const [state, formAction] = useActionState(submitAdmissionForm, initialState);
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
-    if (state.message && !state.issues) {
+    if (state.message && state.success) {
       toast({
         title: 'Success!',
         description: state.message,
       });
       formRef.current?.reset();
-    } else if (state.message && state.issues) {
+    } else if (state.message && !state.success) {
       toast({
         variant: 'destructive',
         title: 'Error',
@@ -123,13 +123,6 @@ export function AdmissionsForm() {
               </div>
           </fieldset>
           
-          <div className="space-y-2">
-            <Label htmlFor="supportingDocument">Supporting Document (Optional)</Label>
-            <Input id="supportingDocument" name="supportingDocument" type="file" accept=".pdf,.png,.jpg,.jpeg" />
-             <p className="text-xs text-muted-foreground">Birth certificate or previous report card. Max 5MB.</p>
-            {getIssue('supportingDocument') && <p className="text-sm text-destructive mt-1">{getIssue('supportingDocument')}</p>}
-          </div>
-
           <div className="space-y-2">
             <Label htmlFor="comments">Additional Comments (Optional)</Label>
             <Textarea id="comments" name="comments" placeholder="Any other information you would like to share." />

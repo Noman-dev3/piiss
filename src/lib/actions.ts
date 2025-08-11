@@ -1,4 +1,3 @@
-
 'use server';
 
 import { z } from 'zod';
@@ -81,7 +80,6 @@ const admissionSchema = z.object({
   appliedClass: z.string().min(1, "Class is required."),
   previousSchool: z.string().optional(),
   comments: z.string().optional(),
-  supportingDocument: z.any().optional(),
 });
 
 export async function submitAdmissionForm(prevState: FormState, formData: FormData): Promise<FormState> {
@@ -96,20 +94,12 @@ export async function submitAdmissionForm(prevState: FormState, formData: FormDa
     }
   }
 
-  const { supportingDocument, ...restOfData } = validatedFields.data;
-  
-  let documentUrl: string | null = null;
-  if (supportingDocument instanceof File && supportingDocument.size > 0) {
-      documentUrl = await uploadFile(supportingDocument, 'admission-documents');
-  }
-  
   try {
     const submissionsRef = ref(db, 'admissionSubmissions');
     const newSubmissionRef = push(submissionsRef);
     await set(newSubmissionRef, {
-      ...restOfData,
+      ...validatedFields.data,
       submittedAt: serverTimestamp(),
-      documentUrl: documentUrl,
     });
 
     // Send email notification
@@ -494,10 +484,10 @@ export async function deleteNewsArticle(id: string): Promise<UploadResult> {
 }
 
 const galleryImageSchema = z.object({
-    src: z.instanceof(File),
-    title: z.string().min(1),
-    description: z.string().min(1),
-    hint: z.string().min(1),
+    src: z.instanceof(File).refine(file => file.size > 0, { message: "Image is required." }),
+    title: z.string().min(1, "Title is required."),
+    description: z.string().min(1, "Description is required."),
+    hint: z.string().min(1, "AI Hint is required."),
 });
 
 export async function createGalleryImage(formData: FormData): Promise<UploadResult> {
@@ -505,8 +495,7 @@ export async function createGalleryImage(formData: FormData): Promise<UploadResu
     const validatedData = galleryImageSchema.safeParse(rawData);
 
     if (!validatedData.success) {
-        const fileError = validatedData.error.errors.find(e => e.path.includes('src'));
-        return { success: false, message: fileError ? 'An image file is required.' : 'Invalid data provided.' };
+        return { success: false, message: validatedData.error.errors.map(e => e.message).join(', ') };
     }
 
     try {
@@ -562,10 +551,10 @@ export async function deleteGalleryImage(id: number): Promise<UploadResult> {
 
 // --- CRUD for Events ---
 const eventSchema = z.object({
-    title: z.string().min(1),
-    date: z.string().min(1),
-    description: z.string().min(1),
-    imageUrl: z.instanceof(File),
+    title: z.string().min(1, "Title is required."),
+    date: z.string().min(1, "Date is required."),
+    description: z.string().min(1, "Description is required."),
+    imageUrl: z.instanceof(File).refine(file => file.size > 0, { message: "Image is required." }),
 });
 
 export async function createEvent(formData: FormData): Promise<UploadResult> {
@@ -573,7 +562,7 @@ export async function createEvent(formData: FormData): Promise<UploadResult> {
     const validatedData = eventSchema.safeParse(rawData);
 
     if (!validatedData.success) {
-        return { success: false, message: 'Invalid event data provided.' };
+        return { success: false, message: validatedData.error.errors.map(e => e.message).join(', ') };
     }
 
     try {
@@ -612,10 +601,10 @@ export async function deleteEvent(id: number): Promise<UploadResult> {
 
 // --- CRUD for Toppers ---
 const topperSchema = z.object({
-    name: z.string().min(1),
-    class: z.string().min(1),
-    percentage: z.string().min(1),
-    imageUrl: z.instanceof(File),
+    name: z.string().min(1, "Name is required."),
+    class: z.string().min(1, "Class is required."),
+    percentage: z.string().min(1, "Percentage is required."),
+    imageUrl: z.instanceof(File).refine(file => file.size > 0, { message: "Image is required." }),
 });
 
 export async function createTopper(formData: FormData): Promise<UploadResult> {
@@ -623,7 +612,7 @@ export async function createTopper(formData: FormData): Promise<UploadResult> {
     const validatedData = topperSchema.safeParse(rawData);
 
     if (!validatedData.success) {
-        return { success: false, message: 'Invalid topper data provided.' };
+        return { success: false, message: validatedData.error.errors.map(e => e.message).join(', ') };
     }
 
     try {
@@ -661,15 +650,17 @@ export async function deleteTopper(id: number): Promise<UploadResult> {
 
 // --- CRUD for Testimonials ---
 const testimonialSchema = z.object({
-    name: z.string().min(1),
-    role: z.string().min(1),
-    quote: z.string().min(1),
+    name: z.string().min(1, "Name is required."),
+    role: z.string().min(1, "Role is required."),
+    quote: z.string().min(1, "Quote is required."),
 });
 
 export async function createTestimonial(formData: FormData): Promise<UploadResult> {
     const rawData = Object.fromEntries(formData.entries());
     const validatedData = testimonialSchema.safeParse(rawData);
-    if (!validatedData.success) return { success: false, message: 'Invalid data.' };
+    if (!validatedData.success) {
+        return { success: false, message: validatedData.error.errors.map(e => e.message).join(', ') };
+    }
     
     try {
         const snapshot = await get(ref(db, 'testimonials'));
@@ -699,14 +690,16 @@ export async function deleteTestimonial(id: number): Promise<UploadResult> {
 
 // --- CRUD for Announcements ---
 const announcementSchema = z.object({
-    text: z.string().min(1),
+    text: z.string().min(1, "Text is required."),
     link: z.string().optional(),
 });
 
 export async function createAnnouncement(formData: FormData): Promise<UploadResult> {
     const rawData = Object.fromEntries(formData.entries());
     const validatedData = announcementSchema.safeParse(rawData);
-    if (!validatedData.success) return { success: false, message: 'Invalid data.' };
+    if (!validatedData.success) {
+        return { success: false, message: validatedData.error.errors.map(e => e.message).join(', ') };
+    }
 
     try {
         const snapshot = await get(ref(db, 'announcements'));
@@ -736,14 +729,16 @@ export async function deleteAnnouncement(id: number): Promise<UploadResult> {
 
 // --- CRUD for FAQs ---
 const faqSchema = z.object({
-    question: z.string().min(1),
-    answer: z.string().min(1),
+    question: z.string().min(1, "Question is required."),
+    answer: z.string().min(1, "Answer is required."),
 });
 
 export async function createFaq(formData: FormData): Promise<UploadResult> {
     const rawData = Object.fromEntries(formData.entries());
     const validatedData = faqSchema.safeParse(rawData);
-    if (!validatedData.success) return { success: false, message: 'Invalid data.' };
+    if (!validatedData.success) {
+        return { success: false, message: validatedData.error.errors.map(e => e.message).join(', ') };
+    }
 
     try {
         const snapshot = await get(ref(db, 'faq'));
