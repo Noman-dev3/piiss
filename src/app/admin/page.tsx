@@ -19,7 +19,7 @@ export default function AdminPage() {
   }, [user, loading, router]);
 
   return (
-    <div className="flex h-screen items-center justify-center">
+    <div className="flex h-[calc(100vh-4rem)] items-center justify-center">
       <Spinner size="large" />
     </div>
   );
