@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useState, useTransition, useRef } from "react";
 import { getGalleryImages } from "@/lib/data-loader";
 import { createGalleryImage, deleteGalleryImage } from "@/lib/actions";
 import type { GalleryImage } from "@/types";
@@ -31,6 +31,7 @@ function GalleryPage() {
     const [images, setImages] = useState<GalleryImage[]>([]);
     const [loading, setLoading] = useState(true);
     const [isPending, startTransition] = useTransition();
+    const formRef = useRef<HTMLFormElement>(null);
 
     const fetchImages = async () => {
         setLoading(true);
@@ -61,18 +62,16 @@ function GalleryPage() {
         });
     }
     
-    const handleAddImage = (formData: FormData) => {
-        startTransition(async () => {
-             const result = await createGalleryImage(formData);
-             if (result.success) {
-                toast({ title: "Success", description: result.message });
-                await fetchImages();
-                (document.getElementById('add-image-form') as HTMLFormElement)?.reset();
-            } else {
-                toast({ title: "Error", description: result.message, variant: "destructive" });
-            }
-        });
-    }
+    const handleAddImageAction = async (formData: FormData) => {
+        const result = await createGalleryImage(formData);
+        if (result.success) {
+            toast({ title: "Success", description: result.message });
+            await fetchImages();
+            formRef.current?.reset();
+        } else {
+            toast({ title: "Error", description: result.message, variant: "destructive" });
+        }
+    };
 
     return (
         <div className="space-y-6">
@@ -84,7 +83,7 @@ function GalleryPage() {
                     <CardDescription>Upload a new image to the website's gallery.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <form id="add-image-form" action={handleAddImage} className="space-y-4">
+                    <form ref={formRef} action={handleAddImageAction} className="space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                              <div className="space-y-2">
                                 <Label htmlFor="src">Image File</Label>
@@ -103,9 +102,9 @@ function GalleryPage() {
                             <Label htmlFor="hint">AI Hint</Label>
                             <Input id="hint" name="hint" placeholder="e.g., student project" required />
                         </div>
-                        <Button type="submit" disabled={isPending}>
+                        <Button type="submit">
                             <PlusCircle className="mr-2" />
-                            {isPending ? 'Adding...' : 'Add Image'}
+                            Add Image
                         </Button>
                     </form>
                 </CardContent>

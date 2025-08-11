@@ -51,7 +51,7 @@ export interface News {
 }
 
 export interface GalleryImage {
-  id: number;
+  id?: number;
   src: string;
   alt: string;
   hint: string;

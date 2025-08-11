@@ -6,7 +6,7 @@ import { smartSearch } from '@/ai/flows/smart-search';
 import { getRawData } from './data-loader';
 import { db, storage } from './firebase';
 import { ref, push, serverTimestamp, set, child, get, update, remove } from 'firebase/database';
-import { ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
+import { ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
 import Papa from 'papaparse';
 import type { Student, ReportCard, Teacher, SiteSettings, News, GalleryImage } from '@/types';
 import { sendContactFormEmail, sendAdmissionFormEmail } from '@/lib/email';
@@ -420,8 +420,8 @@ const handleNewsArticle = async (formData: FormData, isUpdate: boolean): Promise
         imageUrl = await uploadFile(imageFile, 'news');
     }
 
-    if (!imageUrl) {
-        return { success: false, message: 'An image is required for the news article.' };
+    if (!isUpdate && !imageUrl) {
+        return { success: false, message: 'An image is required for a new news article.' };
     }
     
     try {
@@ -430,12 +430,17 @@ const handleNewsArticle = async (formData: FormData, isUpdate: boolean): Promise
             category: data.category,
             content: data.content,
             excerpt: data.content.substring(0, 100).replace(/<[^>]+>/g, '') + '...',
-            imageUrl: imageUrl,
+            imageUrl: imageUrl || '', // Ensure imageUrl is not undefined
         };
         
         if (isUpdate && id) {
              const articleRef = ref(db, `news/${id}`);
-             await update(articleRef, articleData);
+             // Only update imageUrl if a new one was uploaded
+             const updateData: Partial<typeof articleData> = {...articleData};
+             if (!imageUrl) {
+                delete (updateData as any).imageUrl;
+             }
+             await update(articleRef, updateData);
         } else {
              const newsRef = ref(db, 'news');
              const newArticleRef = push(newsRef);
@@ -506,8 +511,6 @@ export async function createGalleryImage(formData: FormData): Promise<UploadResu
             hint: validatedData.data.hint,
         };
 
-        // Firebase Realtime DB doesn't handle arrays well, better to use push with objects.
-        // But for this structure we'll overwrite the whole array.
         const newGalleryData = [...galleryData, newImage];
         await set(ref(db, 'gallery'), newGalleryData);
         
@@ -523,7 +526,14 @@ export async function createGalleryImage(formData: FormData): Promise<UploadResu
 export async function deleteGalleryImage(id: number): Promise<UploadResult> {
     try {
         const snapshot = await get(ref(db, 'gallery'));
-        const galleryData = snapshot.val() || [];
+        const galleryData: GalleryImage[] = snapshot.val() || [];
+        
+        const imageToDelete = galleryData.find((image: GalleryImage) => image.id === id);
+        if (imageToDelete && imageToDelete.src.includes('firebasestorage.googleapis.com')) {
+            const imageStorageRef = storageRef(storage, imageToDelete.src);
+            await deleteObject(imageStorageRef).catch(err => console.error("Could not delete file from storage", err));
+        }
+
         const newGalleryData = galleryData.filter((image: GalleryImage) => image.id !== id);
 
         await set(ref(db, 'gallery'), newGalleryData);
