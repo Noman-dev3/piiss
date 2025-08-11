@@ -1,3 +1,4 @@
+
 'use client';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Users, GraduationCap, Calendar, UserPlus, BookOpen, FileText, ArrowUp } from "lucide-react";
