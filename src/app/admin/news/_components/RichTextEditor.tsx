@@ -5,10 +5,6 @@ import Quill from 'quill';
 import 'quill/dist/quill.snow.css';
 import { useEffect } from 'react';
 
-// Explicitly import and register the list format.
-const List = Quill.import('formats/list');
-Quill.register(List, true);
-
 interface RichTextEditorProps {
   value: string;
   onChange: (value: string) => void;
@@ -48,6 +44,10 @@ export default function RichTextEditor({ value, onChange }: RichTextEditorProps)
   // Listen for changes
   useEffect(() => {
     if (quill) {
+      // Manually register the list format.
+      const list = Quill.import('formats/list');
+      Quill.register(list, true);
+
       const handleChange = () => {
         const html = quill.root.innerHTML;
         // Avoid calling onChange if the content is just the default empty state
