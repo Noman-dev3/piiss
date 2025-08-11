@@ -8,7 +8,7 @@ import { db, storage } from './firebase';
 import { ref, push, serverTimestamp, set, child, get, update, remove } from 'firebase/database';
 import { ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
 import Papa from 'papaparse';
-import type { Student, ReportCard, Teacher, SiteSettings, News, GalleryImage } from '@/types';
+import type { Student, ReportCard, Teacher, SiteSettings, News, GalleryImage, Event, Topper, Testimonial, Announcement, FAQ } from '@/types';
 import { sendContactFormEmail, sendAdmissionFormEmail } from '@/lib/email';
 import { revalidatePath } from 'next/cache';
 
@@ -547,4 +547,213 @@ export async function deleteGalleryImage(id: number): Promise<UploadResult> {
     } catch (error: any) {
         return { success: false, message: error.message || 'An error occurred.' };
     }
+}
+
+// --- CRUD for Events ---
+const eventSchema = z.object({
+    title: z.string().min(1),
+    date: z.string().min(1),
+    description: z.string().min(1),
+    imageUrl: z.instanceof(File),
+});
+
+export async function createEvent(formData: FormData): Promise<UploadResult> {
+    const rawData = Object.fromEntries(formData.entries());
+    const validatedData = eventSchema.safeParse(rawData);
+
+    if (!validatedData.success) {
+        return { success: false, message: 'Invalid event data provided.' };
+    }
+
+    try {
+        const imageUrl = await uploadFile(validatedData.data.imageUrl, 'events');
+        const snapshot = await get(ref(db, 'events'));
+        const data: Event[] = snapshot.val() || [];
+        const nextId = data.length > 0 ? Math.max(...data.map(item => item.id || 0)) + 1 : 1;
+        
+        const newEvent: Event = { id: nextId, ...validatedData.data, imageUrl };
+        
+        const newData = [...data, newEvent];
+        await set(ref(db, 'events'), newData);
+
+        revalidatePath('/events');
+        revalidatePath('/admin/events');
+        return { success: true, message: 'Event created successfully.' };
+    } catch (error: any) {
+        return { success: false, message: error.message || 'An error occurred.' };
+    }
+}
+
+export async function deleteEvent(id: number): Promise<UploadResult> {
+    try {
+        const snapshot = await get(ref(db, 'events'));
+        const data: Event[] = snapshot.val() || [];
+        const newData = data.filter(item => item.id !== id);
+        await set(ref(db, 'events'), newData);
+        
+        revalidatePath('/events');
+        revalidatePath('/admin/events');
+        return { success: true, message: 'Event deleted successfully.' };
+    } catch (error: any) {
+        return { success: false, message: error.message || 'An error occurred.' };
+    }
+}
+
+// --- CRUD for Toppers ---
+const topperSchema = z.object({
+    name: z.string().min(1),
+    class: z.string().min(1),
+    percentage: z.string().min(1),
+    imageUrl: z.instanceof(File),
+});
+
+export async function createTopper(formData: FormData): Promise<UploadResult> {
+    const rawData = Object.fromEntries(formData.entries());
+    const validatedData = topperSchema.safeParse(rawData);
+
+    if (!validatedData.success) {
+        return { success: false, message: 'Invalid topper data provided.' };
+    }
+
+    try {
+        const imageUrl = await uploadFile(validatedData.data.imageUrl, 'toppers');
+        const snapshot = await get(ref(db, 'toppers'));
+        const data: Topper[] = snapshot.val() || [];
+        const nextId = data.length > 0 ? Math.max(...data.map(item => item.id || 0)) + 1 : 1;
+
+        const newTopper: Topper = { id: nextId, ...validatedData.data, imageUrl };
+        const newData = [...data, newTopper];
+        await set(ref(db, 'toppers'), newData);
+
+        revalidatePath('/');
+        revalidatePath('/admin/toppers');
+        return { success: true, message: 'Topper added successfully.' };
+    } catch (error: any) {
+        return { success: false, message: error.message || 'An error occurred.' };
+    }
+}
+
+export async function deleteTopper(id: number): Promise<UploadResult> {
+    try {
+        const snapshot = await get(ref(db, 'toppers'));
+        const data: Topper[] = snapshot.val() || [];
+        const newData = data.filter(item => item.id !== id);
+        await set(ref(db, 'toppers'), newData);
+
+        revalidatePath('/');
+        revalidatePath('/admin/toppers');
+        return { success: true, message: 'Topper deleted successfully.' };
+    } catch (error: any) {
+        return { success: false, message: error.message || 'An error occurred.' };
+    }
+}
+
+// --- CRUD for Testimonials ---
+const testimonialSchema = z.object({
+    name: z.string().min(1),
+    role: z.string().min(1),
+    quote: z.string().min(1),
+});
+
+export async function createTestimonial(formData: FormData): Promise<UploadResult> {
+    const rawData = Object.fromEntries(formData.entries());
+    const validatedData = testimonialSchema.safeParse(rawData);
+    if (!validatedData.success) return { success: false, message: 'Invalid data.' };
+    
+    try {
+        const snapshot = await get(ref(db, 'testimonials'));
+        const data: Testimonial[] = snapshot.val() || [];
+        const nextId = data.length > 0 ? Math.max(...data.map(item => item.id || 0)) + 1 : 1;
+        const newData = [...data, { id: nextId, ...validatedData.data }];
+        await set(ref(db, 'testimonials'), newData);
+
+        revalidatePath('/');
+        revalidatePath('/admin/testimonials');
+        return { success: true, message: 'Testimonial added.' };
+    } catch (e: any) { return { success: false, message: e.message } }
+}
+
+export async function deleteTestimonial(id: number): Promise<UploadResult> {
+    try {
+        const snapshot = await get(ref(db, 'testimonials'));
+        const data: Testimonial[] = snapshot.val() || [];
+        const newData = data.filter(item => item.id !== id);
+        await set(ref(db, 'testimonials'), newData);
+        
+        revalidatePath('/');
+        revalidatePath('/admin/testimonials');
+        return { success: true, message: 'Testimonial deleted.' };
+    } catch (e: any) { return { success: false, message: e.message } }
+}
+
+// --- CRUD for Announcements ---
+const announcementSchema = z.object({
+    text: z.string().min(1),
+    link: z.string().optional(),
+});
+
+export async function createAnnouncement(formData: FormData): Promise<UploadResult> {
+    const rawData = Object.fromEntries(formData.entries());
+    const validatedData = announcementSchema.safeParse(rawData);
+    if (!validatedData.success) return { success: false, message: 'Invalid data.' };
+
+    try {
+        const snapshot = await get(ref(db, 'announcements'));
+        const data: Announcement[] = snapshot.val() || [];
+        const nextId = data.length > 0 ? Math.max(...data.map(item => item.id || 0)) + 1 : 1;
+        const newData = [...data, { id: nextId, ...validatedData.data }];
+        await set(ref(db, 'announcements'), newData);
+
+        revalidatePath('/');
+        revalidatePath('/admin/announcements');
+        return { success: true, message: 'Announcement added.' };
+    } catch (e: any) { return { success: false, message: e.message } }
+}
+
+export async function deleteAnnouncement(id: number): Promise<UploadResult> {
+    try {
+        const snapshot = await get(ref(db, 'announcements'));
+        const data: Announcement[] = snapshot.val() || [];
+        const newData = data.filter(item => item.id !== id);
+        await set(ref(db, 'announcements'), newData);
+        
+        revalidatePath('/');
+        revalidatePath('/admin/announcements');
+        return { success: true, message: 'Announcement deleted.' };
+    } catch (e: any) { return { success: false, message: e.message } }
+}
+
+// --- CRUD for FAQs ---
+const faqSchema = z.object({
+    question: z.string().min(1),
+    answer: z.string().min(1),
+});
+
+export async function createFaq(formData: FormData): Promise<UploadResult> {
+    const rawData = Object.fromEntries(formData.entries());
+    const validatedData = faqSchema.safeParse(rawData);
+    if (!validatedData.success) return { success: false, message: 'Invalid data.' };
+
+    try {
+        const snapshot = await get(ref(db, 'faq'));
+        const data: FAQ[] = snapshot.val() || [];
+        const nextId = data.length > 0 ? Math.max(...data.map(item => item.id || 0)) + 1 : 1;
+        const newData = [...data, { id: nextId, ...validatedData.data }];
+        await set(ref(db, 'faq'), newData);
+
+        revalidatePath('/admin/faq');
+        return { success: true, message: 'FAQ added.' };
+    } catch (e: any) { return { success: false, message: e.message } }
+}
+
+export async function deleteFaq(id: number): Promise<UploadResult> {
+    try {
+        const snapshot = await get(ref(db, 'faq'));
+        const data: FAQ[] = snapshot.val() || [];
+        const newData = data.filter(item => item.id !== id);
+        await set(ref(db, 'faq'), newData);
+
+        revalidatePath('/admin/faq');
+        return { success: true, message: 'FAQ deleted.' };
+    } catch (e: any) { return { success: false, message: e.message } }
 }
