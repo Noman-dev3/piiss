@@ -71,9 +71,6 @@ export async function submitContactForm(
   }
 }
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-const ACCEPTED_FILE_TYPES = ['image/jpeg', 'image/png', 'application/pdf'];
-
 const admissionSchema = z.object({
   applicantName: z.string().min(2, "Applicant name is required."),
   dob: z.string().date("A valid date of birth is required."),
