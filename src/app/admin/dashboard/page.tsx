@@ -3,7 +3,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Users, FileText, Newspaper, Image as ImageIcon } from "lucide-react";
 import { useEffect, useState } from 'react';
 import { db } from '@/lib/firebase';
-import { collection, getDocs } from 'firebase/firestore';
+import { ref, get } from 'firebase/database';
 import withAuth from '@/lib/withAuth';
 
 function DashboardPage() {
@@ -18,17 +18,21 @@ function DashboardPage() {
     useEffect(() => {
         const fetchData = async () => {
             try {
+                const dbRef = ref(db);
                 const [teachersSnap, newsSnap, gallerySnap, eventsSnap] = await Promise.all([
-                    getDocs(collection(db, 'teachers')),
-                    getDocs(collection(db, 'news')),
-                    getDocs(collection(db, 'gallery')),
-                    getDocs(collection(db, 'events')),
+                    get(ref(db, 'teachers')),
+                    get(ref(db, 'news')),
+                    get(ref(db, 'gallery')),
+                    get(ref(db, 'events')),
                 ]);
+
+                const getCount = (snapshot: any) => snapshot.exists() ? Object.keys(snapshot.val()).length : 0;
+                
                 setStats({
-                    teachers: teachersSnap.size,
-                    news: newsSnap.size,
-                    gallery: gallerySnap.size,
-                    events: eventsSnap.size,
+                    teachers: getCount(teachersSnap),
+                    news: getCount(newsSnap),
+                    gallery: getCount(gallerySnap),
+                    events: getCount(eventsSnap),
                 });
             } catch (error) {
                 console.error("Error fetching dashboard data: ", error);

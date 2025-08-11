@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { smartSearch } from '@/ai/flows/smart-search';
 import { getRawData } from './data-loader';
 import { db } from './firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { ref, push, serverTimestamp } from 'firebase/database';
 
 const contactSchema = z.object({
   firstName: z.string().min(2, { message: "First name must be at least 2 characters." }),
@@ -39,7 +39,8 @@ export async function submitContactForm(
   }
   
   try {
-    await addDoc(collection(db, "contactSubmissions"), {
+    const submissionsRef = ref(db, 'contactSubmissions');
+    await push(submissionsRef, {
       ...validatedFields.data,
       submittedAt: serverTimestamp(),
     });
@@ -83,7 +84,8 @@ export async function submitAdmissionForm(prevState: FormState, formData: FormDa
   // For now, we'll just save the form data without the file.
   
   try {
-    await addDoc(collection(db, "admissionSubmissions"), {
+    const submissionsRef = ref(db, 'admissionSubmissions');
+    await push(submissionsRef, {
       applicantName,
       ...restOfData,
       submittedAt: serverTimestamp(),
