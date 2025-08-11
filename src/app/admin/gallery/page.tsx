@@ -50,7 +50,7 @@ function GalleryPage() {
         fetchImages();
     }, []);
 
-    const handleDelete = (id?: number) => {
+    const handleDelete = async (id?: number) => {
         if (!id) return;
         startDeleteTransition(async () => {
             const result = await deleteGalleryImage(id);
