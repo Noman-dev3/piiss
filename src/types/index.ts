@@ -40,6 +40,8 @@ export interface GalleryImage {
   src: string;
   alt: string;
   hint: string;
+  title: string;
+  description: string;
 }
 
 export interface Announcement {
