@@ -1,8 +1,13 @@
 
 'use client';
 import { useQuill } from 'react-quilljs';
+import Quill from 'quill';
 import 'quill/dist/quill.snow.css';
 import { useEffect } from 'react';
+
+// Explicitly import and register the list format.
+const List = Quill.import('formats/list');
+Quill.register(List, true);
 
 interface RichTextEditorProps {
   value: string;
