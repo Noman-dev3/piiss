@@ -7,7 +7,7 @@ import { getRawData } from './data-loader';
 import { db } from './firebase';
 import { ref, push, serverTimestamp, set, child, get, update, remove } from 'firebase/database';
 import Papa from 'papaparse';
-import type { Student, ReportCard, Teacher, SiteSettings, News } from '@/types';
+import type { Student, ReportCard, Teacher, SiteSettings, News, GalleryImage } from '@/types';
 import { sendContactFormEmail, sendAdmissionFormEmail } from '@/lib/email';
 import { revalidatePath } from 'next/cache';
 
@@ -347,22 +347,24 @@ export async function updateReportCard(values: z.infer<typeof updateReportCardSc
 export async function updateSiteSettings(formData: FormData): Promise<UploadResult> {
     const data = Object.fromEntries(formData.entries());
     
-    const settings: Partial<SiteSettings> = {
-        siteName: data.siteName as string,
-        tagline: data.tagline as string,
-        phone: data.phone as string,
-        address: data.address as string,
-        about: {
-            story: data.aboutStory as string,
-            stats: [],
-        },
-        missionVision: [],
-    };
+    // Create a mutable copy of the settings
+    const currentSettingsSnapshot = await get(ref(db, 'settings'));
+    const settings: Partial<SiteSettings> = currentSettingsSnapshot.exists() ? currentSettingsSnapshot.val() : {};
+
+    settings.siteName = data.siteName as string;
+    settings.tagline = data.tagline as string;
+    settings.phone = data.phone as string;
+    settings.address = data.address as string;
+    
+    if (!settings.about) settings.about = { story: '', stats: [], imageUrl: '' };
+    settings.about.story = data.aboutStory as string;
+    settings.about.imageUrl = data.aboutImage as string;
 
     // Reconstruct stats array
+    settings.about.stats = [];
     for (let i = 0; i < 4; i++) {
         if (data[`stat_value_${i}`] && data[`stat_label_${i}`]) {
-            settings.about!.stats.push({
+            settings.about.stats.push({
                 value: data[`stat_value_${i}`] as string,
                 label: data[`stat_label_${i}`] as string,
             });
@@ -370,23 +372,26 @@ export async function updateSiteSettings(formData: FormData): Promise<UploadResu
     }
     
     // Reconstruct mission/vision array
-    for (let i = 0; i < 3; i++) {
-         if (data[`mv_title_${i}`] && data[`mv_description_${i}`]) {
-            settings.missionVision!.push({
+    settings.missionVision = [];
+    let i = 0;
+    while(data[`mv_title_${i}`] !== undefined) {
+         if (data[`mv_title_${i}`]) {
+            settings.missionVision.push({
                 title: data[`mv_title_${i}`] as string,
                 description: data[`mv_description_${i}`] as string,
-                icon: '' // Icon is not editable from here for now
+                icon: data[`mv_icon_${i}`] as string || 'Default',
             });
         }
+        i++;
     }
 
     try {
         await set(ref(db, 'settings'), settings);
         
-        // Revalidate paths where this data is used
         revalidatePath('/');
         revalidatePath('/about');
         revalidatePath('/contact');
+        revalidatePath('/admin/settings');
 
         return { success: true, message: 'Site settings updated successfully.' };
     } catch (error: any) {
@@ -458,6 +463,63 @@ export async function deleteNewsArticle(id: string): Promise<UploadResult> {
         revalidatePath('/news');
         revalidatePath('/admin/news');
         return { success: true, message: 'News article deleted successfully.' };
+    } catch (error: any) {
+        return { success: false, message: error.message || 'An error occurred.' };
+    }
+}
+
+const galleryImageSchema = z.object({
+    src: z.string().url(),
+    title: z.string().min(1),
+    description: z.string().min(1),
+    hint: z.string().min(1),
+});
+
+export async function createGalleryImage(formData: FormData): Promise<UploadResult> {
+    const rawData = Object.fromEntries(formData.entries());
+    const validatedData = galleryImageSchema.safeParse(rawData);
+
+    if (!validatedData.success) {
+        return { success: false, message: 'Invalid data provided for gallery image.' };
+    }
+
+    try {
+        const snapshot = await get(ref(db, 'gallery'));
+        const galleryData = snapshot.val() || [];
+        const nextId = galleryData.length > 0 ? Math.max(...galleryData.map((item: GalleryImage) => item.id || 0)) + 1 : 1;
+        
+        const newImage: GalleryImage = {
+            id: nextId,
+            src: validatedData.data.src,
+            alt: validatedData.data.title, // Use title for alt text
+            title: validatedData.data.title,
+            description: validatedData.data.description,
+            hint: validatedData.data.hint,
+        };
+
+        const newGalleryData = [...galleryData, newImage];
+        await set(ref(db, 'gallery'), newGalleryData);
+        
+        revalidatePath('/gallery');
+        revalidatePath('/admin/gallery');
+        return { success: true, message: 'Image added to gallery.' };
+
+    } catch (error: any) {
+        return { success: false, message: error.message || 'An error occurred.' };
+    }
+}
+
+export async function deleteGalleryImage(id: number): Promise<UploadResult> {
+    try {
+        const snapshot = await get(ref(db, 'gallery'));
+        const galleryData = snapshot.val() || [];
+        const newGalleryData = galleryData.filter((image: GalleryImage) => image.id !== id);
+
+        await set(ref(db, 'gallery'), newGalleryData);
+
+        revalidatePath('/gallery');
+        revalidatePath('/admin/gallery');
+        return { success: true, message: 'Image deleted from gallery.' };
     } catch (error: any) {
         return { success: false, message: error.message || 'An error occurred.' };
     }

@@ -13,7 +13,11 @@ async function fetchData<T>(path: string): Promise<T[]> {
     const snapshot = await get(child(dbRef, path));
     if (snapshot.exists()) {
       const data = snapshot.val();
-      // Convert object of objects into an array, using the key from firebase as the id
+      // Handle both array-like (gallery) and object-of-objects data structures
+      if (Array.isArray(data)) {
+        // Firebase stores arrays as objects with integer keys, so filter out nulls if it was sparse
+        return data.filter(item => item !== null);
+      }
       return Object.keys(data).map(key => ({ ...data[key], id: key }));
     }
     return [];
@@ -68,6 +72,7 @@ export const getSiteSettings = async (): Promise<SiteSettings> => {
             about: {
                 story: "",
                 stats: [],
+                imageUrl: "",
             },
             missionVision: [],
         };

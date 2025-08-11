@@ -105,6 +105,7 @@ export interface SiteSettings {
       value: string;
       label: string;
     }[];
+    imageUrl: string;
   };
   missionVision: {
     title: string;

@@ -8,6 +8,7 @@ export async function AboutSection() {
   const settings = await getSiteSettings();
   const story = settings.about?.story;
   const stats = settings.about?.stats;
+  const imageUrl = settings.about?.imageUrl || "https://placehold.co/600x800.png";
 
   return (
     <section id="about" className="py-16 md:py-32 bg-background">
@@ -40,7 +41,7 @@ export async function AboutSection() {
           <div className="relative h-[450px] rounded-3xl overflow-hidden p-4 bg-gradient-to-br from-primary/20 to-accent/20">
              <div className="relative h-full w-full rounded-2xl overflow-hidden shadow-2xl">
                 <Image
-                    src="https://placehold.co/600x800.png"
+                    src={imageUrl}
                     alt="Classroom"
                     fill
                     className="object-cover"
