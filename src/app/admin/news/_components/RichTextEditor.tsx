@@ -34,6 +34,12 @@ export default function RichTextEditor({ value, onChange }: RichTextEditorProps)
     theme: 'snow'
   });
 
+  // Manually register the list format once.
+  useEffect(() => {
+    const list = Quill.import('formats/list');
+    Quill.register(list, true);
+  }, []);
+
   // Load initial content
   useEffect(() => {
     if (quill && value && quill.root.innerHTML !== value) {
@@ -44,10 +50,6 @@ export default function RichTextEditor({ value, onChange }: RichTextEditorProps)
   // Listen for changes
   useEffect(() => {
     if (quill) {
-      // Manually register the list format.
-      const list = Quill.import('formats/list');
-      Quill.register(list, true);
-
       const handleChange = () => {
         const html = quill.root.innerHTML;
         // Avoid calling onChange if the content is just the default empty state
