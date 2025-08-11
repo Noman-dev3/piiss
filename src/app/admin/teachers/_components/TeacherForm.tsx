@@ -107,7 +107,7 @@ export function TeacherForm({ initialData }: TeacherFormProps) {
                 <FormItem><FormLabel>Role</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
             )} />
             <FormField control={form.control} name="qualification" render={({ field }) => (
-                <FormItem><FormLabel>Qualification</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                <FormItem><FormLabel>Qualification</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormMessage>
             )} />
             <FormField control={form.control} name="experience" render={({ field }) => (
                 <FormItem><FormLabel>Experience</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
