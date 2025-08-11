@@ -114,12 +114,19 @@ export async function approveAdmission(admissionId: string, admissionData: Admis
     try {
         const admissionRef = ref(db, `admissionSubmissions/${admissionId}`);
         await update(admissionRef, { status: 'approved' });
-        await sendAdmissionApprovalEmail(admissionData);
+        
+        try {
+            await sendAdmissionApprovalEmail(admissionData);
+        } catch (emailError) {
+            console.error("Failed to send approval email, but admission was approved in DB:", emailError);
+            // Don't re-throw, allow the success message to be returned to the user.
+        }
+
         revalidatePath('/admin/admissions');
-        return { success: true, message: 'Admission approved and email sent.' };
+        return { success: true, message: 'Admission approved successfully.' };
     } catch (error: any) {
         console.error("Error approving admission: ", error);
-        return { success: false, message: 'Failed to approve admission.' };
+        return { success: false, message: 'Failed to approve admission in the database.' };
     }
 }
 
@@ -127,12 +134,19 @@ export async function rejectAdmission(admissionId: string, admissionData: Admiss
     try {
         const admissionRef = ref(db, `admissionSubmissions/${admissionId}`);
         await update(admissionRef, { status: 'rejected' });
-        await sendAdmissionRejectionEmail(admissionData);
+
+        try {
+            await sendAdmissionRejectionEmail(admissionData);
+        } catch (emailError) {
+            console.error("Failed to send rejection email, but admission was rejected in DB:", emailError);
+             // Don't re-throw, allow the success message to be returned to the user.
+        }
+
         revalidatePath('/admin/admissions');
-        return { success: true, message: 'Admission rejected and email sent.' };
+        return { success: true, message: 'Admission rejected successfully.' };
     } catch (error: any) {
         console.error("Error rejecting admission: ", error);
-        return { success: false, message: 'Failed to reject admission.' };
+        return { success: false, message: 'Failed to reject admission in the database.' };
     }
 }
 
