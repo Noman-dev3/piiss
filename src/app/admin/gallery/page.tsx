@@ -81,14 +81,14 @@ function GalleryPage() {
              <Card>
                 <CardHeader>
                     <CardTitle>Add New Image</CardTitle>
-                    <CardDescription>Add a new image to the website's gallery.</CardDescription>
+                    <CardDescription>Upload a new image to the website's gallery.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <form id="add-image-form" action={handleAddImage} className="space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label htmlFor="src">Image URL</Label>
-                                <Input id="src" name="src" placeholder="https://placehold.co/600x400.png" required />
+                             <div className="space-y-2">
+                                <Label htmlFor="src">Image File</Label>
+                                <Input id="src" name="src" type="file" accept="image/*" required />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="title">Title</Label>

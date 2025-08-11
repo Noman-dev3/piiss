@@ -4,12 +4,21 @@
 import { z } from 'zod';
 import { smartSearch } from '@/ai/flows/smart-search';
 import { getRawData } from './data-loader';
-import { db } from './firebase';
+import { db, storage } from './firebase';
 import { ref, push, serverTimestamp, set, child, get, update, remove } from 'firebase/database';
+import { ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
 import Papa from 'papaparse';
 import type { Student, ReportCard, Teacher, SiteSettings, News, GalleryImage } from '@/types';
 import { sendContactFormEmail, sendAdmissionFormEmail } from '@/lib/email';
 import { revalidatePath } from 'next/cache';
+
+// Helper for file uploads
+const uploadFile = async (file: File, path: string): Promise<string> => {
+  const fileRef = storageRef(storage, `${path}/${Date.now()}-${file.name}`);
+  await uploadBytes(fileRef, file);
+  const downloadURL = await getDownloadURL(fileRef);
+  return downloadURL;
+};
 
 const contactSchema = z.object({
   firstName: z.string().min(2, { message: "First name must be at least 2 characters." }),
@@ -89,8 +98,10 @@ export async function submitAdmissionForm(prevState: FormState, formData: FormDa
 
   const { supportingDocument, ...restOfData } = validatedFields.data;
   
-  // In a real app, you would handle file upload to Firebase Storage here.
-  // For now, we'll just save the form data without the file.
+  let documentUrl: string | null = null;
+  if (supportingDocument instanceof File && supportingDocument.size > 0) {
+      documentUrl = await uploadFile(supportingDocument, 'admission-documents');
+  }
   
   try {
     const submissionsRef = ref(db, 'admissionSubmissions');
@@ -98,8 +109,7 @@ export async function submitAdmissionForm(prevState: FormState, formData: FormDa
     await set(newSubmissionRef, {
       ...restOfData,
       submittedAt: serverTimestamp(),
-      // In a real scenario, you'd store the file URL from Storage here.
-      documentUrl: supportingDocument && supportingDocument.size > 0 ? supportingDocument.name : null,
+      documentUrl: documentUrl,
     });
 
     // Send email notification
@@ -347,7 +357,6 @@ export async function updateReportCard(values: z.infer<typeof updateReportCardSc
 export async function updateSiteSettings(formData: FormData): Promise<UploadResult> {
     const data = Object.fromEntries(formData.entries());
     
-    // Create a mutable copy of the settings
     const currentSettingsSnapshot = await get(ref(db, 'settings'));
     const settings: Partial<SiteSettings> = currentSettingsSnapshot.exists() ? currentSettingsSnapshot.val() : {};
 
@@ -358,31 +367,18 @@ export async function updateSiteSettings(formData: FormData): Promise<UploadResu
     
     if (!settings.about) settings.about = { story: '', stats: [], imageUrl: '' };
     settings.about.story = data.aboutStory as string;
-    settings.about.imageUrl = data.aboutImage as string;
-
-    // Reconstruct stats array
-    settings.about.stats = [];
-    for (let i = 0; i < 4; i++) {
-        if (data[`stat_value_${i}`] && data[`stat_label_${i}`]) {
-            settings.about.stats.push({
-                value: data[`stat_value_${i}`] as string,
-                label: data[`stat_label_${i}`] as string,
-            });
-        }
+    
+    const aboutImageFile = formData.get('aboutImage') as File;
+    if (aboutImageFile && aboutImageFile.size > 0) {
+        settings.about.imageUrl = await uploadFile(aboutImageFile, 'settings');
     }
     
-    // Reconstruct mission/vision array
-    settings.missionVision = [];
-    let i = 0;
-    while(data[`mv_title_${i}`] !== undefined) {
-         if (data[`mv_title_${i}`]) {
-            settings.missionVision.push({
-                title: data[`mv_title_${i}`] as string,
-                description: data[`mv_description_${i}`] as string,
-                icon: data[`mv_icon_${i}`] as string || 'Default',
-            });
-        }
-        i++;
+    if (data.about_stats) {
+       settings.about.stats = JSON.parse(data.about_stats as string);
+    }
+    
+    if (data.missionVision) {
+      settings.missionVision = JSON.parse(data.missionVision as string);
     }
 
     try {
@@ -404,57 +400,67 @@ const newsArticleSchema = z.object({
   id: z.string().optional(),
   title: z.string().min(1, 'Title is required'),
   category: z.string().min(1, 'Category is required'),
-  imageUrl: z.string().url('Must be a valid URL').min(1, 'Image URL is required'),
+  imageFile: z.any().optional(),
+  imageUrl: z.string().optional(),
   content: z.string().min(10, 'Content must be at least 10 characters'),
 });
 
-export async function createNewsArticle(values: z.infer<typeof newsArticleSchema>): Promise<UploadResult> {
-    const validatedData = newsArticleSchema.safeParse(values);
+const handleNewsArticle = async (formData: FormData, isUpdate: boolean): Promise<UploadResult> => {
+    const rawData = Object.fromEntries(formData.entries());
+    const validatedData = newsArticleSchema.safeParse(rawData);
+    
     if (!validatedData.success) {
-        return { success: false, message: 'Invalid data provided.' };
+        return { success: false, message: validatedData.error.errors.map(e => e.message).join(', ') };
     }
-    try {
-        const newsRef = ref(db, 'news');
-        const newArticleRef = push(newsRef);
-        const data: Omit<News, 'id'> = {
-            ...validatedData.data,
-            date: new Date().toISOString(),
-            excerpt: validatedData.data.content.substring(0, 100).replace(/<[^>]+>/g, '') + '...',
-        };
-        await set(newArticleRef, data);
-        revalidatePath('/news');
-        revalidatePath('/admin/news');
-        return { success: true, message: 'News article created successfully.' };
-    } catch (error: any) {
-        return { success: false, message: error.message || 'An error occurred.' };
-    }
-}
 
-export async function updateNewsArticle(values: z.infer<typeof newsArticleSchema>): Promise<UploadResult> {
-    const validatedData = newsArticleSchema.safeParse(values);
-    if (!validatedData.success || !validatedData.data.id) {
-        return { success: false, message: 'Invalid data or missing article ID.' };
+    const { id, imageFile, ...data } = validatedData.data;
+    let imageUrl = data.imageUrl;
+
+    if (imageFile instanceof File && imageFile.size > 0) {
+        imageUrl = await uploadFile(imageFile, 'news');
     }
+
+    if (!imageUrl) {
+        return { success: false, message: 'An image is required for the news article.' };
+    }
+    
     try {
-        const { id, ...dataToUpdate } = validatedData.data;
-        const articleRef = ref(db, `news/${id}`);
+        const articleData: Omit<News, 'id' | 'date'> = {
+            title: data.title,
+            category: data.category,
+            content: data.content,
+            excerpt: data.content.substring(0, 100).replace(/<[^>]+>/g, '') + '...',
+            imageUrl: imageUrl,
+        };
         
-        const updatedData = {
-            ...dataToUpdate,
-            excerpt: dataToUpdate.content.substring(0, 100).replace(/<[^>]+>/g, '') + '...',
-        };
-
-        await update(articleRef, updatedData);
-
+        if (isUpdate && id) {
+             const articleRef = ref(db, `news/${id}`);
+             await update(articleRef, articleData);
+        } else {
+             const newsRef = ref(db, 'news');
+             const newArticleRef = push(newsRef);
+             await set(newArticleRef, { ...articleData, date: new Date().toISOString() });
+        }
+        
         revalidatePath('/news');
-        revalidatePath(`/news/${id}`);
+        if (id) revalidatePath(`/news/${id}`);
         revalidatePath('/admin/news');
 
-        return { success: true, message: 'News article updated successfully.' };
+        const message = isUpdate ? 'News article updated successfully.' : 'News article created successfully.';
+        return { success: true, message };
     } catch (error: any) {
         return { success: false, message: error.message || 'An error occurred.' };
     }
+};
+
+export async function createNewsArticle(formData: FormData): Promise<UploadResult> {
+    return handleNewsArticle(formData, false);
 }
+
+export async function updateNewsArticle(formData: FormData): Promise<UploadResult> {
+    return handleNewsArticle(formData, true);
+}
+
 
 export async function deleteNewsArticle(id: string): Promise<UploadResult> {
     try {
@@ -469,7 +475,7 @@ export async function deleteNewsArticle(id: string): Promise<UploadResult> {
 }
 
 const galleryImageSchema = z.object({
-    src: z.string().url(),
+    src: z.instanceof(File),
     title: z.string().min(1),
     description: z.string().min(1),
     hint: z.string().min(1),
@@ -480,23 +486,28 @@ export async function createGalleryImage(formData: FormData): Promise<UploadResu
     const validatedData = galleryImageSchema.safeParse(rawData);
 
     if (!validatedData.success) {
-        return { success: false, message: 'Invalid data provided for gallery image.' };
+        const fileError = validatedData.error.errors.find(e => e.path.includes('src'));
+        return { success: false, message: fileError ? 'An image file is required.' : 'Invalid data provided.' };
     }
 
     try {
+        const imageUrl = await uploadFile(validatedData.data.src, 'gallery');
+
         const snapshot = await get(ref(db, 'gallery'));
-        const galleryData = snapshot.val() || [];
-        const nextId = galleryData.length > 0 ? Math.max(...galleryData.map((item: GalleryImage) => item.id || 0)) + 1 : 1;
+        const galleryData: GalleryImage[] = snapshot.val() || [];
+        const nextId = galleryData.length > 0 ? Math.max(...galleryData.map((item) => item.id || 0)) + 1 : 1;
         
         const newImage: GalleryImage = {
             id: nextId,
-            src: validatedData.data.src,
+            src: imageUrl,
             alt: validatedData.data.title, // Use title for alt text
             title: validatedData.data.title,
             description: validatedData.data.description,
             hint: validatedData.data.hint,
         };
 
+        // Firebase Realtime DB doesn't handle arrays well, better to use push with objects.
+        // But for this structure we'll overwrite the whole array.
         const newGalleryData = [...galleryData, newImage];
         await set(ref(db, 'gallery'), newGalleryData);
         

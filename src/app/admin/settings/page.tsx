@@ -13,6 +13,7 @@ import type { SiteSettings } from "@/types";
 import { useEffect, useState, useTransition } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PlusCircle, Trash } from "lucide-react";
+import Image from "next/image";
 
 function SettingsPage() {
     const { toast } = useToast();
@@ -29,6 +30,14 @@ function SettingsPage() {
 
     const handleFormSubmit = (formData: FormData) => {
         startTransition(async () => {
+            // Need to append the complex state objects manually
+            if (settings?.about?.stats) {
+                formData.append('about_stats', JSON.stringify(settings.about.stats));
+            }
+            if (settings?.missionVision) {
+                formData.append('missionVision', JSON.stringify(settings.missionVision));
+            }
+
             const result = await updateSiteSettings(formData);
             if (result.success) {
                 toast({ title: "Success", description: result.message });
@@ -44,7 +53,7 @@ function SettingsPage() {
         if (!settings) return;
         const newStats = [...(settings.about?.stats || [])];
         newStats[index] = { ...newStats[index], [field]: value };
-        setSettings({ ...settings, about: { ...settings.about, stats: newStats } });
+        setSettings({ ...settings, about: { ...settings.about!, stats: newStats } });
     }
     
     const handleMissionVisionChange = (index: number, field: 'title' | 'description' | 'icon', value: string) => {
@@ -127,8 +136,14 @@ function SettingsPage() {
                         <Textarea id="aboutStory" name="aboutStory" rows={5} defaultValue={settings.about?.story} />
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="aboutImage">Image URL</Label>
-                        <Input id="aboutImage" name="aboutImage" defaultValue={settings.about?.imageUrl} placeholder="https://placehold.co/600x800.png" />
+                        <Label htmlFor="aboutImage">Image File</Label>
+                        <Input id="aboutImage" name="aboutImage" type="file" accept="image/*" />
+                         {settings.about?.imageUrl && (
+                            <div className="mt-4">
+                                <p className="text-sm text-muted-foreground mb-2">Current Image:</p>
+                                <Image src={settings.about.imageUrl} alt="Current About Image" width={200} height={200} className="rounded-md object-cover"/>
+                            </div>
+                        )}
                     </div>
                     <div>
                         <Label>Key Statistics</Label>

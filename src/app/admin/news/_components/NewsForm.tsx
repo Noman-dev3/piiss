@@ -21,13 +21,25 @@ const RichTextEditor = dynamic(() => import('./RichTextEditor'), {
   loading: () => <Skeleton className="h-48 w-full" />,
 });
 
+const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+
 const formSchema = z.object({
   id: z.string().optional(),
   title: z.string().min(1, 'Title is required'),
   category: z.string().min(1, 'Category is required'),
-  imageUrl: z.string().url('Must be a valid URL').min(1, 'Image URL is required'),
+  imageUrl: z.string().optional(), // For existing images
+  imageFile: z.any()
+    .refine((file) => !file || file.size > 0, 'Image is required.')
+    .refine(
+        (file) => !file || ACCEPTED_IMAGE_TYPES.includes(file.type),
+        ".jpg, .jpeg, .png and .webp files are accepted."
+    ).optional(),
   content: z.string().min(10, 'Content must be at least 10 characters'),
+}).refine(data => data.id || data.imageFile, {
+  message: 'Image is required for a new article.',
+  path: ['imageFile'],
 });
+
 
 type FormValues = z.infer<typeof formSchema>;
 
@@ -56,9 +68,23 @@ export function NewsForm({ initialData }: NewsFormProps) {
 
   const onSubmit = (values: FormValues) => {
     startTransition(async () => {
+        const formData = new FormData();
+        Object.keys(values).forEach(key => {
+            const value = values[key as keyof FormValues];
+            if (value !== undefined && value !== null) {
+                 if (key === 'imageFile') {
+                    if (value instanceof File) {
+                        formData.append(key, value);
+                    }
+                } else {
+                    formData.append(key, String(value));
+                }
+            }
+        });
+
       try {
         const action = isEditMode ? updateNewsArticle : createNewsArticle;
-        const result = await action(values);
+        const result = await action(formData);
         
         if (result.success) {
           toast({ title: 'Success', description: result.message });
@@ -104,14 +130,23 @@ export function NewsForm({ initialData }: NewsFormProps) {
           />
           <FormField
             control={form.control}
-            name="imageUrl"
+            name="imageFile"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Image URL</FormLabel>
+                <FormLabel>Featured Image</FormLabel>
                 <FormControl>
-                  <Input placeholder="https://placehold.co/600x400.png" {...field} />
+                    <Input 
+                        type="file" 
+                        accept="image/*"
+                        onChange={(e) => field.onChange(e.target.files ? e.target.files[0] : null)}
+                    />
                 </FormControl>
                 <FormMessage />
+                {initialData?.imageUrl && (
+                    <p className="text-xs text-muted-foreground mt-2">
+                        Current image is set. Upload a new file to replace it.
+                    </p>
+                )}
               </FormItem>
             )}
           />
