@@ -43,14 +43,14 @@ function SettingsPage() {
 
     const handleStatChange = (index: number, field: 'value' | 'label', value: string) => {
         if (!settings) return;
-        const newStats = [...settings.about.stats];
+        const newStats = [...(settings.about?.stats || [])];
         newStats[index] = { ...newStats[index], [field]: value };
         setSettings({ ...settings, about: { ...settings.about, stats: newStats } });
     }
     
     const handleMissionVisionChange = (index: number, field: 'title' | 'description', value: string) => {
         if (!settings) return;
-        const newItems = [...settings.missionVision];
+        const newItems = [...(settings.missionVision || [])];
         newItems[index] = { ...newItems[index], [field]: value };
         setSettings({ ...settings, missionVision: newItems });
     }
@@ -112,12 +112,12 @@ function SettingsPage() {
                 <CardContent className="space-y-6">
                     <div className="space-y-2">
                         <Label htmlFor="aboutStory">Story / Description</Label>
-                        <Textarea id="aboutStory" name="aboutStory" rows={5} defaultValue={settings.about.story} />
+                        <Textarea id="aboutStory" name="aboutStory" rows={5} defaultValue={settings.about?.story} />
                     </div>
                     <div>
                         <Label>Key Statistics</Label>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-2">
-                            {settings.about.stats.map((stat, index) => (
+                            {settings.about?.stats?.map((stat, index) => (
                                 <div key={index} className="p-4 border rounded-lg space-y-2">
                                      <Label htmlFor={`stat-value-${index}`}>Value</Label>
                                      <Input 
@@ -146,7 +146,7 @@ function SettingsPage() {
                     <CardDescription>Edit the mission, vision, and values displayed on the 'About Us' page.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    {settings.missionVision.map((item, index) => (
+                    {settings.missionVision?.map((item, index) => (
                         <div key={index} className="p-4 border rounded-lg space-y-2">
                             <Label htmlFor={`mv-title-${index}`}>Title</Label>
                             <Input 

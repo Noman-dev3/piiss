@@ -6,7 +6,8 @@ import { getSiteSettings } from '@/lib/data-loader';
 
 export async function AboutSection() {
   const settings = await getSiteSettings();
-  const { story, stats } = settings.about;
+  const story = settings.about?.story;
+  const stats = settings.about?.stats;
 
   return (
     <section id="about" className="py-16 md:py-32 bg-background">
@@ -27,7 +28,7 @@ export async function AboutSection() {
             </p>
 
             <div className="grid grid-cols-2 gap-y-8">
-              {stats.map((stat) => (
+              {stats?.map((stat) => (
                 <div key={stat.label}>
                   <p className={`text-4xl font-bold text-primary`}>{stat.value}</p>
                   <p className="text-sm text-muted-foreground mt-1">{stat.label}</p>
