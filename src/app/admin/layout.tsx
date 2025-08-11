@@ -51,7 +51,7 @@ export default function AdminLayout({
             </SidebarFooter>
         </Sidebar>
         <SidebarInset>
-            <div className="min-h-screen">
+            <div className="min-h-screen bg-background">
                 {children}
             </div>
         </SidebarInset>

@@ -70,7 +70,7 @@ export default function DashboardPage() {
                     <CardDescription>From here you can manage all aspects of your school website.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <p>This is a placeholder for more detailed analytics and management tools. You can navigate using the sidebar (coming soon).</p>
+                    <p>This is a placeholder for more detailed analytics and management tools. You can navigate using the sidebar.</p>
                 </CardContent>
             </Card>
         </div>

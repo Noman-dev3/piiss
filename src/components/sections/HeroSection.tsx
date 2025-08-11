@@ -35,9 +35,9 @@ export function HeroSection() {
               <Button asChild size="lg" className="rounded-full bg-white/90 text-primary hover:bg-white font-semibold shadow-lg">
                 <Link href="/admissions">Explore Programs</Link>
               </Button>
-              <Button asChild size="lg" variant="ghost" className="rounded-full text-white hover:bg-white/10">
+              <Button asChild size="lg" variant="outline" className="rounded-full text-white hover:bg-white/10 bg-transparent border-white/50">
                 <Link href="/contact">
-                    Admin Portal <ChevronRight className="ml-1" />
+                    Contact Us
                 </Link>
               </Button>
             </div>

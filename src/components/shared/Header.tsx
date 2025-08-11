@@ -102,21 +102,6 @@ export function Header() {
                     aria-label="Search website"
                 />
             </form>
-            <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="rounded-full">
-                        Admin <ChevronDown className="ml-2 h-4 w-4" />
-                    </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                    <DropdownMenuItem>
-                        <User className='mr-2' /> Profile
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                         <Link href="#">Admin Panel</Link>
-                    </DropdownMenuItem>
-                </DropdownMenuContent>
-            </DropdownMenu>
         </div>
         <div className="lg:hidden">
           <Sheet open={isMobileMenuOpen} onOpenChange={setMobileMenuOpen}>
@@ -147,7 +132,6 @@ export function Header() {
                     <NavLink key={link.href} {...link} currentPath={pathname} closeMenu={() => setMobileMenuOpen(false)} />
                   ))}
                 </nav>
-                <Button variant="outline" className="rounded-full w-full">Admin</Button>
               </div>
             </SheetContent>
           </Sheet>
