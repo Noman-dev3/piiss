@@ -1,3 +1,4 @@
+
 'use server';
 
 import { db } from './firebase';
@@ -52,23 +53,38 @@ export const getFaqs = async () => fetchData<FAQ>('faq');
 export const getSingleNews = async (id: string) => fetchSingleItem<News>('news', id);
 export const getSingleTeacher = async (id: string) => fetchSingleItem<Teacher>('teachers', id);
 
-export const getAllReportCards = async (): Promise<(ReportCard & { studentName: string, studentRollNo: string })[]> => {
+export const getAllReportCards = async (): Promise<(ReportCard & { studentName: string, studentRollNo: string, studentId: string })[]> => {
     const students = await getStudents();
-    const allReportCards: (ReportCard & { studentName: string, studentRollNo: string })[] = [];
+    const allReportCards: (ReportCard & { studentName: string, studentRollNo: string, studentId: string })[] = [];
 
     for (const student of students) {
-        if (student.id) {
-            const reports = await getReportCards(student.id);
+        if (student.id && student.results) {
+            const reports = Object.keys(student.results).map(key => ({ ...student.results[key], id: key }));
             reports.forEach(report => {
                 allReportCards.push({
                     ...report,
                     studentName: student.name,
-                    studentRollNo: student.rollNumber
+                    studentRollNo: student.rollNumber,
+                    studentId: student.id,
                 });
             });
         }
     }
     return allReportCards;
+};
+
+export const getSingleReportCard = async (studentId: string, resultId: string): Promise<{ student: Student, report: ReportCard } | null> => {
+    try {
+        const student = await fetchSingleItem<Student>('students', studentId);
+        if (!student || !student.results || !student.results[resultId]) {
+            return null;
+        }
+        const report = { ...student.results[resultId], id: resultId };
+        return { student, report };
+    } catch (error) {
+        console.error(`Error fetching report card ${resultId} for student ${studentId}:`, error);
+        return null;
+    }
 };
 
 

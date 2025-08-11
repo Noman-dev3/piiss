@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { smartSearch } from '@/ai/flows/smart-search';
 import { getRawData, getStudents } from './data-loader';
 import { db } from './firebase';
-import { ref, push, serverTimestamp, set, child, get } from 'firebase/database';
+import { ref, push, serverTimestamp, set, child, get, update } from 'firebase/database';
 import Papa from 'papaparse';
 import type { Student, ReportCard, Teacher } from '@/types';
 
@@ -156,7 +156,7 @@ const fileToAction = async (formData: FormData, dbPath: string, idKey: string, k
         const fileContent = await file.text();
         const parsedData = await parseCsv<any>(fileContent);
         
-        const dataToUpload: Record<string, any> = {};
+        const updates: Record<string, any> = {};
         
         parsedData.forEach((item: any) => {
             const id = item[idKey]?.trim();
@@ -167,19 +167,19 @@ const fileToAction = async (formData: FormData, dbPath: string, idKey: string, k
                         const newKey = keyMapping[oldKey.trim()] || oldKey.trim();
                         newItem[newKey] = item[oldKey];
                     }
-                    dataToUpload[id] = newItem;
+                    updates[`${dbPath}/${id}`] = newItem;
                 } else {
-                   dataToUpload[id] = item;
+                   updates[`${dbPath}/${id}`] = item;
                 }
             }
         });
         
-        if (Object.keys(dataToUpload).length === 0) {
+        if (Object.keys(updates).length === 0) {
             return { success: false, message: `CSV must contain a "${idKey}" column for each entry.` };
         }
 
-        const dbRef = ref(db, dbPath);
-        await set(dbRef, dataToUpload);
+        const dbRef = ref(db);
+        await update(dbRef, updates);
 
         return { success: true, message: 'Data uploaded successfully!' };
     } catch (error: any) {
@@ -197,7 +197,7 @@ export async function uploadTeachersCsv(formData: FormData): Promise<UploadResul
         'Photo_Path': 'photoPath',
         'Date_Joined': 'dateJoined'
     };
-    return fileToAction(formData, 'teachers', 'Teacher_ID', keyMapping);
+    return fileToAction(formData, 'teachers', 'teacherId', keyMapping);
 }
 
 export async function uploadStudentsCsv(formData: FormData): Promise<UploadResult> {
@@ -209,7 +209,7 @@ export async function uploadStudentsCsv(formData: FormData): Promise<UploadResul
         'Contact': 'contact',
         'Address': 'address'
     };
-    return fileToAction(formData, 'students', 'Roll_Number', keyMapping);
+    return fileToAction(formData, 'students', 'rollNumber', keyMapping);
 }
 
 export async function uploadResultsJson(formData: FormData): Promise<UploadResult> {
@@ -220,9 +220,13 @@ export async function uploadResultsJson(formData: FormData): Promise<UploadResul
 
     try {
         const fileContent = await file.text();
-        let resultsData: ReportCard[] | ReportCard = JSON.parse(fileContent);
-
-        // If the file contains a single object, wrap it in an array
+        let resultsData;
+        try {
+            resultsData = JSON.parse(fileContent);
+        } catch (e) {
+            return { success: false, message: 'Invalid JSON file.' };
+        }
+        
         if (!Array.isArray(resultsData)) {
             resultsData = [resultsData];
         }
@@ -230,19 +234,74 @@ export async function uploadResultsJson(formData: FormData): Promise<UploadResul
         const students = await getStudents();
         const studentMap = new Map(students.map(s => [s.rollNumber, s.id]));
 
+        const updates: Record<string, any> = {};
+
         for (const result of resultsData) {
-            const studentId = studentMap.get(result.roll_number);
+            const rollNo = result.roll_number;
+            const studentId = studentMap.get(rollNo);
+            
             if (studentId) {
-                const resultsRef = ref(db, `students/${studentId}/results`);
-                await push(resultsRef, result);
+                const newResultKey = push(child(ref(db), `students/${studentId}/results`)).key;
+                updates[`/students/${studentId}/results/${newResultKey}`] = result;
             } else {
-                console.warn(`No student found for roll number: ${result.roll_number}`);
+                console.warn(`No student found for roll number: ${rollNo}`);
             }
         }
 
+        if (Object.keys(updates).length === 0) {
+             return { success: false, message: 'No matching students found for the results provided.' };
+        }
+
+        await update(ref(db), updates);
         return { success: true, message: 'Results uploaded and linked to students successfully!' };
     } catch (error: any) {
         console.error(`Error uploading results:`, error);
         return { success: false, message: error.message || 'An error occurred during upload.' };
+    }
+}
+
+const updateReportCardSchema = z.object({
+  studentId: z.string(),
+  resultId: z.string(),
+  studentName: z.string(),
+  rollNumber: z.string(),
+  class: z.string().min(1, "Class is required"),
+  session: z.string().min(1, "Session is required"),
+  grade: z.string().min(1, "Grade is required"),
+  subjects: z.array(z.object({
+    name: z.string().min(1, 'Subject name is required'),
+    marks: z.number().min(0, 'Marks cannot be negative'),
+  })).min(1, 'At least one subject is required'),
+});
+
+
+export async function updateReportCard(values: z.infer<typeof updateReportCardSchema>): Promise<UploadResult> {
+    const validatedData = updateReportCardSchema.safeParse(values);
+
+    if (!validatedData.success) {
+        return { success: false, message: validatedData.error.errors.map(e => e.message).join(', ') };
+    }
+
+    const { studentId, resultId, subjects, ...restOfData } = validatedData.data;
+
+    try {
+        const reportCardRef = ref(db, `students/${studentId}/results/${resultId}`);
+        
+        // Convert array of subjects back to an object
+        const subjectsAsObject = subjects.reduce((acc, subject) => {
+            acc[subject.name] = subject.marks;
+            return acc;
+        }, {} as Record<string, number>);
+
+        await update(reportCardRef, {
+            ...restOfData,
+            roll_number: restOfData.rollNumber, // Ensure the key is correct in DB
+            subjects: subjectsAsObject,
+        });
+
+        return { success: true, message: 'Report card updated successfully.' };
+    } catch (error: any) {
+        console.error('Error updating report card:', error);
+        return { success: false, message: error.message || 'An unexpected error occurred.' };
     }
 }

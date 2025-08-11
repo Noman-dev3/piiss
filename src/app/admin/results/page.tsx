@@ -1,3 +1,4 @@
+
 'use client';
 import withAuth from "@/lib/withAuth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,21 +12,31 @@ import { useEffect, useState, useTransition } from "react";
 import { getAllReportCards } from "@/lib/data-loader";
 import type { ReportCard, Student } from "@/types";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { FileUp, Info } from "lucide-react";
+import { FileUp, Info, Pencil } from "lucide-react";
+import Link from "next/link";
 
 interface DisplayReportCard extends ReportCard {
   studentName: string;
   studentRollNo: string;
+  studentId: string;
 }
 
 function ResultsPage() {
     const { toast } = useToast();
     const [isPending, startTransition] = useTransition();
     const [reportCards, setReportCards] = useState<DisplayReportCard[]>([]);
+    const [loading, setLoading] = useState(true);
 
     const fetchReports = async () => {
-        const data = await getAllReportCards();
-        setReportCards(data);
+        setLoading(true);
+        try {
+            const data = await getAllReportCards();
+            setReportCards(data);
+        } catch (error) {
+            toast({ title: "Error", description: "Failed to fetch report cards.", variant: "destructive" });
+        } finally {
+            setLoading(false);
+        }
     };
 
     useEffect(() => {
@@ -37,7 +48,7 @@ function ResultsPage() {
             const result = await uploadResultsJson(formData);
             if (result.success) {
                 toast({ title: "Success", description: result.message });
-                await fetchReports();
+                await fetchReports(); // Refresh the list
             } else {
                 toast({ title: "Error", description: result.message, variant: "destructive" });
             }
@@ -50,14 +61,14 @@ function ResultsPage() {
             <Card>
                 <CardHeader>
                     <CardTitle>Upload Results</CardTitle>
-                    <CardDescription>Upload a JSON file to add new report cards for existing students. The file should be an array of result objects.</CardDescription>
+                    <CardDescription>Upload a JSON file to add new report cards. The file can be a single result object or an array of them.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <Alert>
                          <Info className="h-4 w-4" />
                         <AlertTitle>JSON Format</AlertTitle>
                         <AlertDescription>
-                            The JSON file must be an array of objects, each containing a `roll_number` that matches an existing student.
+                            Each result object must contain a `roll_number` that matches an existing student.
                         </AlertDescription>
                     </Alert>
                     <form action={handleResultsUpload} className="space-y-4">
@@ -76,7 +87,7 @@ function ResultsPage() {
             <Card>
                 <CardHeader>
                     <CardTitle>All Student Results</CardTitle>
-                    <CardDescription>This table shows all the individual report cards currently in the database.</CardDescription>
+                    <CardDescription>This table shows all the individual report cards currently in the database. Click Edit to manage a specific entry.</CardDescription>
                 </CardHeader>
                 <CardContent>
                      <Table>
@@ -86,15 +97,28 @@ function ResultsPage() {
                                 <TableHead>Student Name</TableHead>
                                 <TableHead>Session</TableHead>
                                 <TableHead>Grade</TableHead>
+                                <TableHead className="text-right">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {reportCards.length > 0 ? reportCards.map(report => (
+                            {loading ? (
+                                <TableRow>
+                                    <TableCell colSpan={5} className="text-center">Loading results...</TableCell>
+                                </TableRow>
+                            ) : reportCards.length > 0 ? reportCards.map(report => (
                                 <TableRow key={report.id}>
                                     <TableCell>{report.studentRollNo}</TableCell>
                                     <TableCell>{report.studentName}</TableCell>
                                     <TableCell>{report.session}</TableCell>
                                     <TableCell>{report.grade}</TableCell>
+                                    <TableCell className="text-right">
+                                        <Button asChild variant="ghost" size="icon">
+                                            <Link href={`/admin/results/${report.studentId}/${report.id}/edit`}>
+                                                <Pencil className="h-4 w-4" />
+                                                <span className="sr-only">Edit</span>
+                                            </Link>
+                                        </Button>
+                                    </TableCell>
                                 </TableRow>
                             )) : (
                                 <TableRow>

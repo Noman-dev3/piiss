@@ -1,3 +1,4 @@
+
 'use client';
 import withAuth from "@/lib/withAuth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,10 +18,18 @@ function StudentsPage() {
     const { toast } = useToast();
     const [isPending, startTransition] = useTransition();
     const [students, setStudents] = useState<Student[]>([]);
+    const [loading, setLoading] = useState(true);
 
     const fetchStudents = async () => {
-        const studentsData = await getStudents();
-        setStudents(studentsData);
+        setLoading(true);
+        try {
+            const studentsData = await getStudents();
+            setStudents(studentsData);
+        } catch (error) {
+            toast({ title: "Error", description: "Failed to fetch students.", variant: "destructive" });
+        } finally {
+            setLoading(false);
+        }
     };
 
     useEffect(() => {
@@ -85,7 +94,11 @@ function StudentsPage() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {students.length > 0 ? students.map(student => (
+                            {loading ? (
+                                <TableRow>
+                                    <TableCell colSpan={5} className="text-center">Loading students...</TableCell>
+                                </TableRow>
+                            ) : students.length > 0 ? students.map(student => (
                                 <TableRow key={student.rollNumber}>
                                     <TableCell>{student.rollNumber}</TableCell>
                                     <TableCell>{student.name}</TableCell>

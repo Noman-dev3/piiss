@@ -1,3 +1,4 @@
+
 export interface Teacher {
   id: string;
   teacherId: string;
@@ -16,7 +17,7 @@ export interface Teacher {
 }
 
 export interface Student {
-  id: string; // The key from Firebase
+  id: string; // The key from Firebase (rollNumber)
   name: string;
   rollNumber: string; // From CSV: Roll_Number
   class: string;
@@ -30,20 +31,22 @@ export interface Student {
 
 export interface ReportCard {
   id: string; // The key from Firebase
+  student_name: string;
   roll_number: string;
-  term: string;
+  class: string;
+  session: string;
+  subjects: Record<string, number>;
+  total_marks: number;
+  max_marks: number;
+  percentage: number;
+  grade: string;
+  date_created: string;
+  term?: string;
   year?: number;
-  session?: string;
-  subjects?: Record<string, number>;
-  total_marks?: number;
-  max_marks?: number;
-  percentage?: number;
-  grade?: string;
-  date_created?: string;
-  grades?: Record<string, string>;
   attendance?: string;
   teacher_remarks?: string;
 }
+
 
 export interface News {
   id: number;
