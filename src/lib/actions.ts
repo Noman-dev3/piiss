@@ -53,9 +53,13 @@ const ACCEPTED_FILE_TYPES = ['image/jpeg', 'image/png', 'application/pdf'];
 const admissionSchema = z.object({
   applicantName: z.string().min(2, "Applicant name is required."),
   dob: z.string().date("A valid date of birth is required."),
+  gender: z.enum(['male', 'female', 'other'], { required_error: 'Please select a gender.' }),
   parentName: z.string().min(2, "Parent name is required."),
   parentEmail: z.string().email("A valid parent email is required."),
+  parentPhone: z.string().min(5, "A valid phone number is required."),
   appliedClass: z.string().min(1, "Class is required."),
+  previousSchool: z.string().optional(),
+  comments: z.string().optional(),
   supportingDocument: z
     .any()
     .refine((file) => !file || file.size === 0 || file.size <= MAX_FILE_SIZE, `File size should be less than 5MB.`)
@@ -79,8 +83,7 @@ export async function submitAdmissionForm(prevState: FormState, formData: FormDa
 
   const { applicantName, parentEmail, supportingDocument } = validatedFields.data;
   
-  console.log("New Admission Form Submission for:", applicantName);
-  console.log("Parent Email:", parentEmail);
+  console.log("New Admission Form Submission for:", validatedFields.data);
   
   if (supportingDocument && supportingDocument.size > 0) {
     console.log("Received document:", supportingDocument.name, "Size:", supportingDocument.size);
