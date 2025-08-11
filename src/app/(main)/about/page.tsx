@@ -79,7 +79,7 @@ export default function AboutPage() {
                     <CardTitle>{feature.title}</CardTitle>
                     <CardDescription className="pt-2">{feature.description}</CardDescription>
                 </CardHeader>
-                </Card>>
+                </Card>
             ))}
             </div>
         </div>
