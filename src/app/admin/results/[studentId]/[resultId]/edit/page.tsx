@@ -12,11 +12,6 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
-interface PageParams {
-  studentId: string;
-  resultId: string;
-}
-
 function EditResultPage() {
   const params = useParams<{ studentId: string; resultId: string }>();
   const [reportCard, setReportCard] = useState<{ student: Student; report: ReportCard } | null>(null);

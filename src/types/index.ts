@@ -32,16 +32,11 @@ export interface Student {
 
 export interface ReportCard {
   id: string; // The key from Firebase
-  student_name: string;
   roll_number: string;
   class: string;
   session: string;
   subjects: Record<string, number>;
-  total_marks: number;
-  max_marks: number;
-  percentage: number;
   grade: string;
-  date_created: string;
 }
 
 

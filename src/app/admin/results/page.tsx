@@ -10,7 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { uploadResultsJson } from "@/lib/actions";
 import { useEffect, useState, useTransition } from "react";
 import { getAllReportCards } from "@/lib/data-loader";
-import type { ReportCard, Student } from "@/types";
+import type { ReportCard } from "@/types";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { FileUp, Info, Pencil } from "lucide-react";
 import Link from "next/link";
