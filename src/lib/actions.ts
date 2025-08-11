@@ -8,6 +8,7 @@ import { db } from './firebase';
 import { ref, push, serverTimestamp, set, child, get, update } from 'firebase/database';
 import Papa from 'papaparse';
 import type { Student, ReportCard, Teacher } from '@/types';
+import { sendContactFormEmail, sendAdmissionFormEmail } from '@/lib/email';
 
 const contactSchema = z.object({
   firstName: z.string().min(2, { message: "First name must be at least 2 characters." }),
@@ -47,6 +48,10 @@ export async function submitContactForm(
       ...validatedFields.data,
       submittedAt: serverTimestamp(),
     });
+    
+    // Send email notifications
+    await sendContactFormEmail(validatedFields.data);
+
     return { message: "Thank you for your message! We will get back to you shortly." };
   } catch (error) {
     console.error("Error saving contact form submission: ", error);
@@ -81,21 +86,25 @@ export async function submitAdmissionForm(prevState: FormState, formData: FormDa
     }
   }
 
-  const { applicantName, supportingDocument, ...restOfData } = validatedFields.data;
+  const { supportingDocument, ...restOfData } = validatedFields.data;
   
   // In a real app, you would handle file upload to Firebase Storage here.
   // For now, we'll just save the form data without the file.
   
   try {
     const submissionsRef = ref(db, 'admissionSubmissions');
-    await push(submissionsRef, {
-      applicantName,
+    const newSubmissionRef = push(submissionsRef);
+    await set(newSubmissionRef, {
       ...restOfData,
       submittedAt: serverTimestamp(),
       // In a real scenario, you'd store the file URL from Storage here.
       documentUrl: supportingDocument && supportingDocument.size > 0 ? supportingDocument.name : null,
     });
-     return { message: `Thank you, ${applicantName}! Your admission form has been submitted successfully.` };
+
+    // Send email notification
+    await sendAdmissionFormEmail(validatedFields.data);
+
+     return { message: `Thank you, ${validatedFields.data.applicantName}! Your admission form has been submitted successfully.` };
   } catch (error) {
      console.error("Error saving admission form submission: ", error);
      return { message: "An error occurred while submitting the form. Please try again." };
@@ -103,7 +112,7 @@ export async function submitAdmissionForm(prevState: FormState, formData: FormDa
 }
 
 
-export async function handleSearch(query: string) {
+export async function handleSearch(query: string): Promise<{ results?: string; error?: string }> {
   if (!query) {
     return { results: "" };
   }
@@ -190,15 +199,16 @@ const fileToAction = async (formData: FormData, dbPath: string, idKey: string, k
 
 export async function uploadTeachersCsv(formData: FormData): Promise<UploadResult> {
     const keyMapping = {
-        'Name': 'name',
         'Teacher_ID': 'teacherId',
+        'Name': 'name',
         'Contact': 'contact',
         'Salary': 'salary',
         'Photo_Path': 'photoPath',
         'Date_Joined': 'dateJoined'
     };
-    return fileToAction(formData, 'teachers', 'teacherId', keyMapping);
+    return fileToAction(formData, 'teachers', 'Teacher_ID', keyMapping);
 }
+
 
 export async function uploadStudentsCsv(formData: FormData): Promise<UploadResult> {
     const keyMapping = {
@@ -209,8 +219,9 @@ export async function uploadStudentsCsv(formData: FormData): Promise<UploadResul
         'Contact': 'contact',
         'Address': 'address'
     };
-    return fileToAction(formData, 'students', 'rollNumber', keyMapping);
+    return fileToAction(formData, 'students', 'Roll_Number', keyMapping);
 }
+
 
 export async function uploadResultsJson(formData: FormData): Promise<UploadResult> {
     const file = formData.get('file') as File;
@@ -231,21 +242,19 @@ export async function uploadResultsJson(formData: FormData): Promise<UploadResul
             resultsData = [resultsData];
         }
 
-        const students = await getStudents();
-        const studentMap = new Map(students.map(s => [s.rollNumber, s]));
-
         const updates: Record<string, any> = {};
         let newResultsCount = 0;
         let skippedResultsCount = 0;
 
         for (const result of resultsData) {
             const rollNo = result.roll_number;
-            const student = studentMap.get(rollNo);
+            const studentSnapshot = await get(child(ref(db), `students/${rollNo}`));
             
-            if (student && student.id) {
+            if (studentSnapshot.exists()) {
+                const student = {id: studentSnapshot.key, ...studentSnapshot.val()};
                 const existingResults = student.results ? Object.values(student.results) : [];
                 const isDuplicate = existingResults.some(
-                    (existingResult: ReportCard) => existingResult.session === result.session
+                    (existingResult: any) => existingResult.session === result.session
                 );
 
                 if (isDuplicate) {
