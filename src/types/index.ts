@@ -28,8 +28,6 @@ export interface Student {
   rollNo?: string;
 }
 
-export type StudentWithReportCount = Student & { reportCount: number };
-
 export interface ReportCard {
   id: string; // The key from Firebase
   roll_number: string;

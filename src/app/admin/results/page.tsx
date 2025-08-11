@@ -4,23 +4,40 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import { uploadResultsJson } from "@/lib/actions";
-import { useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
+import { getAllReportCards } from "@/lib/data-loader";
+import type { ReportCard, Student } from "@/types";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { FileUp, Info } from "lucide-react";
+
+interface DisplayReportCard extends ReportCard {
+  studentName: string;
+  studentRollNo: string;
+}
 
 function ResultsPage() {
     const { toast } = useToast();
     const [isPending, startTransition] = useTransition();
+    const [reportCards, setReportCards] = useState<DisplayReportCard[]>([]);
+
+    const fetchReports = async () => {
+        const data = await getAllReportCards();
+        setReportCards(data);
+    };
+
+    useEffect(() => {
+        fetchReports();
+    }, []);
 
     const handleResultsUpload = (formData: FormData) => {
         startTransition(async () => {
             const result = await uploadResultsJson(formData);
             if (result.success) {
                 toast({ title: "Success", description: result.message });
-                 // Optionally, you can trigger a refresh of student data on the students page
-                 // from here if needed, but the primary view is on the students page.
+                await fetchReports();
             } else {
                 toast({ title: "Error", description: result.message, variant: "destructive" });
             }
@@ -53,6 +70,41 @@ function ResultsPage() {
                             {isPending ? 'Uploading...' : 'Upload Results JSON'}
                         </Button>
                     </form>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>All Student Results</CardTitle>
+                    <CardDescription>This table shows all the individual report cards currently in the database.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                     <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Roll No</TableHead>
+                                <TableHead>Student Name</TableHead>
+                                <TableHead>Term</TableHead>
+                                <TableHead>Year</TableHead>
+                                <TableHead>Session</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {reportCards.length > 0 ? reportCards.map(report => (
+                                <TableRow key={report.id}>
+                                    <TableCell>{report.studentRollNo}</TableCell>
+                                    <TableCell>{report.studentName}</TableCell>
+                                    <TableCell>{report.term}</TableCell>
+                                    <TableCell>{report.year}</TableCell>
+                                    <TableCell>{report.session}</TableCell>
+                                </TableRow>
+                            )) : (
+                                <TableRow>
+                                    <TableCell colSpan={5} className="text-center">No results found.</TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
                 </CardContent>
             </Card>
         </div>
