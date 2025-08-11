@@ -12,6 +12,7 @@ import {
   Sheet,
   SheetContent,
   SheetHeader,
+  SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
 import {
@@ -126,6 +127,7 @@ export function Header() {
               </Button>
             </SheetTrigger>
             <SheetContent side="left">
+               <SheetTitle className="sr-only">Mobile Menu</SheetTitle>
               <SheetHeader>
                 <Logo />
               </SheetHeader>
