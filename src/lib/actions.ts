@@ -1,3 +1,4 @@
+
 'use server';
 
 import { z } from 'zod';
@@ -228,28 +229,29 @@ export async function uploadResultsJson(formData: FormData): Promise<UploadResul
 
     try {
         const fileContent = await file.text();
-        const resultsData: ReportCard[] = JSON.parse(fileContent);
+        const resultsData: Record<string, ReportCard> = JSON.parse(fileContent);
 
-        if (!Array.isArray(resultsData)) {
-            return { success: false, message: 'JSON file should contain an array of result objects.' };
+        if (typeof resultsData !== 'object' || Array.isArray(resultsData) || resultsData === null) {
+            return { success: false, message: 'JSON file should contain an object of result objects, keyed by roll number.' };
         }
         
         const studentsRef = ref(db, 'students');
         const studentsSnap = await get(studentsRef);
         const studentsData = studentsSnap.val() || {};
+        const allStudentRollNumbers = Object.values(studentsData).map((s: any) => s.rollNumber);
         
-        for (const result of resultsData) {
-            if (!result.roll_number) {
-                console.warn('Skipping result without roll_number:', result);
-                continue;
-            }
-            const studentId = result.roll_number;
-            // Check if student with this roll number exists
-            if (studentsData[studentId]) {
-                const resultsRef = ref(db, `students/${studentId}/results`);
-                await push(resultsRef, result);
+        for (const rollNumber in resultsData) {
+            const studentRecord = Object.values(studentsData).find((s: any) => s.rollNumber === rollNumber);
+
+            if (studentRecord) {
+                const studentKey = Object.keys(studentsData).find(key => studentsData[key].rollNumber === rollNumber);
+                if(studentKey) {
+                    const result = resultsData[rollNumber];
+                    const resultsRef = ref(db, `students/${studentKey}/results`);
+                    await push(resultsRef, result);
+                }
             } else {
-                console.warn(`No student found for roll number: ${result.roll_number}`);
+                console.warn(`No student found for roll number: ${rollNumber}`);
             }
         }
 
