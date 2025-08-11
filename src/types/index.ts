@@ -1,4 +1,5 @@
 
+
 export interface Teacher {
   id: string;
   teacherId: string;
@@ -98,4 +99,19 @@ export interface SiteSettings {
     description: string;
     icon: string;
   }[];
+}
+
+export interface Admission {
+  id: string;
+  applicantName: string;
+  dob: string;
+  gender: 'male' | 'female' | 'other';
+  parentName: string;
+  parentEmail: string;
+  parentPhone: string;
+  appliedClass: string;
+  previousSchool?: string;
+  comments?: string;
+  submittedAt: string;
+  status: 'pending' | 'approved' | 'rejected';
 }

@@ -7,8 +7,8 @@ import { getRawData } from './data-loader';
 import { db, storage } from './firebase';
 import { ref, push, serverTimestamp, set, child, get, update, remove } from 'firebase/database';
 import Papa from 'papaparse';
-import type { Student, ReportCard, Teacher, SiteSettings, GalleryImage, Event, Topper, Testimonial, Announcement, FAQ } from '@/types';
-import { sendContactFormEmail, sendAdmissionFormEmail } from '@/lib/email';
+import type { Student, ReportCard, Teacher, SiteSettings, GalleryImage, Event, Topper, Testimonial, Announcement, FAQ, Admission } from '@/types';
+import { sendContactFormEmail, sendAdmissionFormEmail, sendAdmissionApprovalEmail, sendAdmissionRejectionEmail } from '@/lib/email';
 import { revalidatePath } from 'next/cache';
 
 const contactSchema = z.object({
@@ -92,6 +92,7 @@ export async function submitAdmissionForm(prevState: FormState, formData: FormDa
     await set(newSubmissionRef, {
       ...validatedFields.data,
       submittedAt: serverTimestamp(),
+      status: 'pending', // Default status
     });
 
     // Send email notification
@@ -104,6 +105,36 @@ export async function submitAdmissionForm(prevState: FormState, formData: FormDa
   }
 }
 
+type ActionStatusResult = {
+  success: boolean;
+  message: string;
+}
+
+export async function approveAdmission(admissionId: string, admissionData: Admission): Promise<ActionStatusResult> {
+    try {
+        const admissionRef = ref(db, `admissionSubmissions/${admissionId}`);
+        await update(admissionRef, { status: 'approved' });
+        await sendAdmissionApprovalEmail(admissionData);
+        revalidatePath('/admin/admissions');
+        return { success: true, message: 'Admission approved and email sent.' };
+    } catch (error: any) {
+        console.error("Error approving admission: ", error);
+        return { success: false, message: 'Failed to approve admission.' };
+    }
+}
+
+export async function rejectAdmission(admissionId: string, admissionData: Admission): Promise<ActionStatusResult> {
+    try {
+        const admissionRef = ref(db, `admissionSubmissions/${admissionId}`);
+        await update(admissionRef, { status: 'rejected' });
+        await sendAdmissionRejectionEmail(admissionData);
+        revalidatePath('/admin/admissions');
+        return { success: true, message: 'Admission rejected and email sent.' };
+    } catch (error: any) {
+        console.error("Error rejecting admission: ", error);
+        return { success: false, message: 'Failed to reject admission.' };
+    }
+}
 
 export async function handleSearch(query: string): Promise<{ results?: string; error?: string }> {
   if (!query) {

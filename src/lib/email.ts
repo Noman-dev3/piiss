@@ -2,6 +2,7 @@
 'use server';
 import nodemailer from 'nodemailer';
 import { config } from 'dotenv';
+import type { Admission } from '@/types';
 
 config();
 
@@ -111,5 +112,47 @@ export async function sendAdmissionFormEmail(data: {
     console.log('Admission form emails sent successfully.');
   } catch (error) {
      console.error('Error sending admission form email:', error);
+  }
+}
+
+export async function sendAdmissionApprovalEmail(data: Admission) {
+  const { applicantName, parentName, parentEmail, appliedClass } = data;
+  try {
+    await transporter.sendMail({
+        from: `"PIISS Admissions" <${process.env.EMAIL_USER}>`,
+        to: parentEmail,
+        subject: `Congratulations! Admission for ${applicantName} has been Approved`,
+        html: `
+            <h2>Congratulations! Your child's admission has been approved.</h2>
+            <p>Dear ${parentName},</p>
+            <p>We are delighted to inform you that the admission for <strong>${applicantName}</strong> to <strong>Class ${appliedClass}</strong> has been approved.</p>
+            <p>We will contact you shortly with information about the next steps, including enrollment details and orientation dates. Welcome to the PIISS family!</p>
+            <p>Sincerely,<br/>The PIISS Admissions Team</p>
+        `,
+    });
+  } catch (error) {
+     console.error('Error sending admission approval email:', error);
+     throw new Error('Could not send approval email.');
+  }
+}
+
+export async function sendAdmissionRejectionEmail(data: Admission) {
+  const { applicantName, parentName, parentEmail, appliedClass } = data;
+  try {
+    await transporter.sendMail({
+        from: `"PIISS Admissions" <${process.env.EMAIL_USER}>`,
+        to: parentEmail,
+        subject: `Update on your admission application for ${applicantName}`,
+        html: `
+            <h2>Admission Application Update</h2>
+            <p>Dear ${parentName},</p>
+            <p>Thank you for your interest in PIISS and for submitting an application for <strong>${applicantName}</strong> for <strong>Class ${appliedClass}</strong>.</p>
+            <p>After careful consideration, we regret to inform you that we are unable to offer a place at this time due to the high volume of applications and limited availability. We wish you the best in your search for a suitable school.</p>
+            <p>Sincerely,<br/>The PIISS Admissions Team</p>
+        `,
+    });
+  } catch (error) {
+     console.error('Error sending admission rejection email:', error);
+     throw new Error('Could not send rejection email.');
   }
 }
