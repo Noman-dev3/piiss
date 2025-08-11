@@ -2,6 +2,7 @@
 'use client';
 import withAuth from "@/lib/withAuth";
 import { useEffect, useState } from "react";
+import { useParams } from 'next/navigation';
 import { getSingleReportCard } from "@/lib/data-loader";
 import { ReportCard, Student } from "@/types";
 import { EditResultForm } from "./_components/EditResultForm";
@@ -16,12 +17,14 @@ interface PageParams {
   resultId: string;
 }
 
-function EditResultPage({ params }: { params: PageParams }) {
+function EditResultPage() {
+  const params = useParams<{ studentId: string; resultId: string }>();
   const [reportCard, setReportCard] = useState<{ student: Student; report: ReportCard } | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchReport = async () => {
+      if (!params.studentId || !params.resultId) return;
       try {
         const data = await getSingleReportCard(params.studentId, params.resultId);
         setReportCard(data);
