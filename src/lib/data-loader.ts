@@ -127,6 +127,7 @@ export const getRawData = async () => {
       announcements,
       siteSettings,
       publicResultsMetadata,
+      students,
     ] = await Promise.all([
       getTeachers(),
       getEvents(),
@@ -135,6 +136,7 @@ export const getRawData = async () => {
       getAnnouncements(),
       getSiteSettings(),
       get(ref(db, 'publicResultsMetadata')),
+      getStudents(),
     ]);
 
     return {
@@ -145,5 +147,6 @@ export const getRawData = async () => {
       faqData: JSON.stringify(faq),
       publicResultsMetadata: JSON.stringify(publicResultsMetadata.val() || {}),
       announcementsData: JSON.stringify(announcements),
+      studentsData: JSON.stringify(students),
     };
 };

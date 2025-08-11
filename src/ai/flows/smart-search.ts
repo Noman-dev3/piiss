@@ -1,4 +1,4 @@
- 'use server';
+'use server';
 /**
  * @fileOverview AI-powered smart search flow for the website.
  *
@@ -19,6 +19,7 @@ const SmartSearchInputSchema = z.object({
   faqData: z.string().describe('The data of FAQs.'),
   publicResultsMetadata: z.string().describe('The data of public results metadata.'),
   announcementsData: z.string().describe('The data of announcements.'),
+  studentsData: z.string().describe('The data of students, including their report cards.'),
 });
 export type SmartSearchInput = z.infer<typeof SmartSearchInputSchema>;
 
@@ -46,11 +47,13 @@ You have access to the following data sources:
 - FAQ: {{{faqData}}}
 - Public Results Metadata: {{{publicResultsMetadata}}}
 - Announcements: {{{announcementsData}}}
+- Students Data (including grades): {{{studentsData}}}
 
 Use the data to provide the most relevant search results to the user, considering both the meaning of the query and specific keywords.
+If the user asks about a specific student's grades, provide the grades from the 'studentsData'.
 If the query is not relevant to the data provided, respond that you are unable to find results for the query.
 
-Query: {{{query}}}`, 
+Query: {{{query}}}`,
 });
 
 const smartSearchFlow = ai.defineFlow(

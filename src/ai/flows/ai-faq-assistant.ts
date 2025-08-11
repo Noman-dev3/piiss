@@ -20,6 +20,7 @@ const AiFAQAssistantInputSchema = z.object({
   faqData: z.string().describe('The FAQ data.'),
   publicResultsMetadata: z.string().describe('The public results metadata.'),
   announcementsData: z.string().describe('The announcements data.'),
+  studentsData: z.string().describe('The students data including their report cards.'),
 });
 export type AiFAQAssistantInput = z.infer<typeof AiFAQAssistantInputSchema>;
 
@@ -46,6 +47,7 @@ const aiFAQAssistantPrompt = ai.definePrompt({
   - FAQ Data: {{{faqData}}}
   - Public Results Metadata: {{{publicResultsMetadata}}}
   - Announcements Data: {{{announcementsData}}}
+  - Students Data: {{{studentsData}}}
 
   Use the data to provide helpful and informative answers to the user.
   If you cannot answer the question based on the data provided, respond that you are unable to find the answer to the question.
