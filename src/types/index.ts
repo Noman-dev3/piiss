@@ -41,7 +41,7 @@ export interface ReportCard {
 
 
 export interface News {
-  id: number;
+  id?: string;
   title: string;
   date: string;
   category: string;

@@ -5,9 +5,9 @@ import { z } from 'zod';
 import { smartSearch } from '@/ai/flows/smart-search';
 import { getRawData } from './data-loader';
 import { db } from './firebase';
-import { ref, push, serverTimestamp, set, child, get, update } from 'firebase/database';
+import { ref, push, serverTimestamp, set, child, get, update, remove } from 'firebase/database';
 import Papa from 'papaparse';
-import type { Student, ReportCard, Teacher, SiteSettings } from '@/types';
+import type { Student, ReportCard, Teacher, SiteSettings, News } from '@/types';
 import { sendContactFormEmail, sendAdmissionFormEmail } from '@/lib/email';
 import { revalidatePath } from 'next/cache';
 
@@ -392,5 +392,73 @@ export async function updateSiteSettings(formData: FormData): Promise<UploadResu
     } catch (error: any) {
         console.error('Error updating site settings:', error);
         return { success: false, message: error.message || 'An unexpected error occurred.' };
+    }
+}
+
+const newsArticleSchema = z.object({
+  id: z.string().optional(),
+  title: z.string().min(1, 'Title is required'),
+  category: z.string().min(1, 'Category is required'),
+  imageUrl: z.string().url('Must be a valid URL').min(1, 'Image URL is required'),
+  content: z.string().min(10, 'Content must be at least 10 characters'),
+});
+
+export async function createNewsArticle(values: z.infer<typeof newsArticleSchema>): Promise<UploadResult> {
+    const validatedData = newsArticleSchema.safeParse(values);
+    if (!validatedData.success) {
+        return { success: false, message: 'Invalid data provided.' };
+    }
+    try {
+        const newsRef = ref(db, 'news');
+        const newArticleRef = push(newsRef);
+        const data: Omit<News, 'id'> = {
+            ...validatedData.data,
+            date: new Date().toISOString(),
+            excerpt: validatedData.data.content.substring(0, 100).replace(/<[^>]+>/g, '') + '...',
+        };
+        await set(newArticleRef, data);
+        revalidatePath('/news');
+        revalidatePath('/admin/news');
+        return { success: true, message: 'News article created successfully.' };
+    } catch (error: any) {
+        return { success: false, message: error.message || 'An error occurred.' };
+    }
+}
+
+export async function updateNewsArticle(values: z.infer<typeof newsArticleSchema>): Promise<UploadResult> {
+    const validatedData = newsArticleSchema.safeParse(values);
+    if (!validatedData.success || !validatedData.data.id) {
+        return { success: false, message: 'Invalid data or missing article ID.' };
+    }
+    try {
+        const { id, ...dataToUpdate } = validatedData.data;
+        const articleRef = ref(db, `news/${id}`);
+        
+        const updatedData = {
+            ...dataToUpdate,
+            excerpt: dataToUpdate.content.substring(0, 100).replace(/<[^>]+>/g, '') + '...',
+        };
+
+        await update(articleRef, updatedData);
+
+        revalidatePath('/news');
+        revalidatePath(`/news/${id}`);
+        revalidatePath('/admin/news');
+
+        return { success: true, message: 'News article updated successfully.' };
+    } catch (error: any) {
+        return { success: false, message: error.message || 'An error occurred.' };
+    }
+}
+
+export async function deleteNewsArticle(id: string): Promise<UploadResult> {
+    try {
+        const articleRef = ref(db, `news/${id}`);
+        await remove(articleRef);
+        revalidatePath('/news');
+        revalidatePath('/admin/news');
+        return { success: true, message: 'News article deleted successfully.' };
+    } catch (error: any) {
+        return { success: false, message: error.message || 'An error occurred.' };
     }
 }
