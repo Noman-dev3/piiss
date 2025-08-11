@@ -1,0 +1,58 @@
+[
+  {
+    "rollNo": 101,
+    "term": "Mid-Term",
+    "year": 2023,
+    "grades": {
+      "Physics": "A+",
+      "Chemistry": "A",
+      "Mathematics": "A+",
+      "English": "B+",
+      "Computer Science": "A"
+    },
+    "attendance": "95%",
+    "teacher_remarks": "Aarav is an excellent student with a strong aptitude for science and mathematics. Keep up the great work!"
+  },
+  {
+    "rollNo": 102,
+    "term": "Mid-Term",
+    "year": 2023,
+    "grades": {
+      "Physics": "B",
+      "Chemistry": "A",
+      "Mathematics": "B+",
+      "English": "A+",
+      "Biology": "A"
+    },
+    "attendance": "98%",
+    "teacher_remarks": "Saanvi has shown remarkable improvement in her sciences. Her creative writing in English is exceptional."
+  },
+  {
+    "rollNo": 103,
+    "term": "Mid-Term",
+    "year": 2023,
+    "grades": {
+      "Physics": "C",
+      "Chemistry": "B",
+      "Mathematics": "B",
+      "English": "A",
+      "History": "A+"
+    },
+    "attendance": "92%",
+    "teacher_remarks": "Vivaan is a diligent student. He excels in humanities and shows great promise."
+  },
+  {
+    "rollNo": 104,
+    "term": "Mid-Term",
+    "year": 2023,
+    "grades": {
+      "Accounting": "A+",
+      "Business Studies": "A",
+      "Economics": "A+",
+      "English": "A",
+      "Mathematics": "B"
+    },
+    "attendance": "96%",
+    "teacher_remarks": "Myra has a sharp business acumen and is a top performer in her commerce subjects."
+  }
+]

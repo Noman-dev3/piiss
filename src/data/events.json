@@ -1,0 +1,24 @@
+
+[
+    {
+      "id": 1,
+      "title": "Annual Sports Day",
+      "date": "2024-11-15",
+      "description": "Join us for a day of thrilling athletic competitions, team spirit, and fun-filled activities. A celebration of sportsmanship and talent.",
+      "imageUrl": "https://placehold.co/600x400.png"
+    },
+    {
+      "id": 2,
+      "title": "Science and Technology Expo",
+      "date": "2024-10-20",
+      "description": "Explore the innovative projects and scientific discoveries made by our students. A showcase of creativity and critical thinking.",
+      "imageUrl": "https://placehold.co/600x400.png"
+    },
+    {
+      "id": 3,
+      "title": "Charity Bake Sale",
+      "date": "2024-09-25",
+      "description": "Support a good cause while enjoying delicious treats baked by our students and staff. All proceeds will go to a local charity.",
+      "imageUrl": "https://placehold.co/600x400.png"
+    }
+]

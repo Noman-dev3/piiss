@@ -1,0 +1,31 @@
+
+[
+  {
+    "id": 1,
+    "name": "Aarav Sharma",
+    "class": "Grade 12 - Science",
+    "percentage": "98.5%",
+    "imageUrl": "https://placehold.co/400x400.png"
+  },
+  {
+    "id": 2,
+    "name": "Saanvi Gupta",
+    "class": "Grade 12 - Commerce",
+    "percentage": "97.8%",
+    "imageUrl": "https://placehold.co/400x400.png"
+  },
+  {
+    "id": 3,
+    "name": "Vivaan Singh",
+    "class": "Grade 10",
+    "percentage": "99.2%",
+    "imageUrl": "https://placehold.co/400x400.png"
+  },
+  {
+    "id": 4,
+    "name": "Myra Khan",
+    "class": "Grade 12 - Arts",
+    "percentage": "96.9%",
+    "imageUrl": "https://placehold.co/400x400.png"
+  }
+]

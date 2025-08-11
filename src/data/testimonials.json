@@ -1,0 +1,24 @@
+
+[
+  {
+    "id": 1,
+    "name": "Mr. & Mrs. Khan",
+    "role": "Parents of a Grade 8 Student",
+    "quote": "PIISS has been a second home for our son. The teachers are incredibly supportive, and the focus on both academics and character development is truly commendable. We've seen a remarkable positive change in him.",
+    "imageUrl": "https://placehold.co/100x100.png"
+  },
+  {
+    "id": 2,
+    "name": "Fatima Ahmed",
+    "role": "Alumna, Class of 2020",
+    "quote": "The foundation I received at PIISS was instrumental in my university success. The challenging curriculum and dedicated faculty prepared me for the rigors of higher education and beyond. I'm forever grateful.",
+    "imageUrl": "https://placehold.co/100x100.png"
+  },
+  {
+    "id": 3,
+    "name": "Dr. Arshad",
+    "role": "Parent of two Graduates",
+    "quote": "As a parent, I couldn't have asked for a better school for my children. The safe, nurturing environment combined with a high standard of education is what makes PIISS stand out. Highly recommended.",
+    "imageUrl": "https://placehold.co/100x100.png"
+  }
+]

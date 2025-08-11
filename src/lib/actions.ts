@@ -1,0 +1,106 @@
+'use server';
+
+import { z } from 'zod';
+import { smartSearch } from '@/ai/flows/smart-search';
+import { getRawData } from './data-loader';
+
+const contactSchema = z.object({
+  name: z.string().min(2, { message: "Name must be at least 2 characters." }),
+  email: z.string().email({ message: "Please enter a valid email." }),
+  message: z.string().min(10, { message: "Message must be at least 10 characters." }),
+});
+
+export type FormState = {
+  message: string;
+  fields?: Record<string, string>;
+  issues?: string[];
+};
+
+export async function submitContactForm(
+  prevState: FormState,
+  formData: FormData
+): Promise<FormState> {
+  const validatedFields = contactSchema.safeParse(Object.fromEntries(formData.entries()));
+
+  if (!validatedFields.success) {
+    const { fieldErrors } = validatedFields.error.flatten();
+    return {
+      message: "Please fix the errors below.",
+      fields: Object.fromEntries(formData.entries()),
+      issues: validatedFields.error.issues.map(issue => issue.path.join('.') + ': ' + issue.message),
+    };
+  }
+
+  console.log("New Contact Form Submission:");
+  console.log("Name:", validatedFields.data.name);
+  console.log("Email:", validatedFields.data.email);
+  console.log("Message:", validatedFields.data.message);
+  
+  return { message: "Thank you for your message! We will get back to you shortly." };
+}
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const ACCEPTED_FILE_TYPES = ['image/jpeg', 'image/png', 'application/pdf'];
+
+const admissionSchema = z.object({
+  applicantName: z.string().min(2, "Applicant name is required."),
+  dob: z.string().date("A valid date of birth is required."),
+  parentName: z.string().min(2, "Parent name is required."),
+  parentEmail: z.string().email("A valid parent email is required."),
+  appliedClass: z.string().min(1, "Class is required."),
+  supportingDocument: z
+    .any()
+    .refine((file) => file?.size <= MAX_FILE_SIZE, `File size should be less than 5MB.`)
+    .refine(
+      (file) => ACCEPTED_FILE_TYPES.includes(file?.type),
+      "Only .jpg, .png, and .pdf files are accepted."
+    ).optional(),
+});
+
+export async function submitAdmissionForm(prevState: FormState, formData: FormData): Promise<FormState> {
+  const validatedFields = admissionSchema.safeParse(Object.fromEntries(formData.entries()));
+
+  if (!validatedFields.success) {
+    console.log(validatedFields.error.flatten().fieldErrors);
+    return {
+      message: "Please fix the errors below.",
+      fields: Object.fromEntries(formData.entries()),
+      issues: validatedFields.error.issues.map(issue => issue.path.join('.') + ': ' + issue.message),
+    }
+  }
+
+  const { applicantName, parentEmail, supportingDocument } = validatedFields.data;
+  
+  console.log("New Admission Form Submission for:", applicantName);
+  console.log("Parent Email:", parentEmail);
+  
+  if (supportingDocument && supportingDocument.size > 0) {
+    console.log("Received document:", supportingDocument.name, "Size:", supportingDocument.size);
+    // In a real application, you would upload this file to Firebase Storage here.
+    // const fileBuffer = Buffer.from(await supportingDocument.arrayBuffer());
+    // ... upload logic ...
+  }
+
+  // Here you would save to Firebase DB, send emails, etc.
+
+  return { message: `Thank you, ${applicantName}! Your admission form has been submitted successfully.` };
+}
+
+
+export async function handleSearch(query: string) {
+  if (!query) {
+    return { results: "" };
+  }
+
+  try {
+    const rawData = await getRawData();
+    const result = await smartSearch({
+      query,
+      ...rawData,
+    });
+    return { results: result.results };
+  } catch (error) {
+    console.error("Smart search failed:", error);
+    return { error: 'An error occurred during the search. Please try again.' };
+  }
+}

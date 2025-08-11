@@ -1,0 +1,23 @@
+
+[
+    {
+      "id": 1,
+      "question": "What is the admission process for new students?",
+      "answer": "The admission process begins with submitting an online application through our admissions portal. After submission, shortlisted candidates will be called for an entrance test and an interview. Successful candidates will then receive an offer of admission."
+    },
+    {
+      "id": 2,
+      "question": "What are the school timings?",
+      "answer": "The school operates from 8:00 AM to 2:30 PM, Monday to Friday. Timings for extracurricular activities may extend beyond this and will be communicated separately."
+    },
+    {
+      "id": 3,
+      "question": "What curriculum does the school follow?",
+      "answer": "We follow a comprehensive curriculum that integrates both national and international standards to provide a well-rounded education. For detailed subject information, please refer to the Academics section of our website."
+    },
+    {
+      "id": 4,
+      "question": "How can I contact a specific teacher?",
+      "answer": "You can schedule a meeting with a teacher through the school's parent portal or by contacting the school administration office. We encourage open communication between parents and teachers."
+    }
+]

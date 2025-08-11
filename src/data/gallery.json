@@ -1,0 +1,10 @@
+[
+  { "id": 1, "src": "https://placehold.co/600x400.png", "alt": "Students in a chemistry lab", "hint": "students chemistry" },
+  { "id": 2, "src": "https://placehold.co/400x600.png", "alt": "School library with students reading", "hint": "school library" },
+  { "id": 3, "src": "https://placehold.co/600x400.png", "alt": "Annual sports day event", "hint": "sports day" },
+  { "id": 4, "src": "https://placehold.co/600x400.png", "alt": "Art class with students painting", "hint": "art class" },
+  { "id": 5, "src": "https://placehold.co/400x600.png", "alt": "School building on a sunny day", "hint": "school building" },
+  { "id": 6, "src": "https://placehold.co/600x400.png", "alt": "Graduation ceremony", "hint": "graduation ceremony" },
+  { "id": 7, "src": "https://placehold.co/600x400.png", "alt": "School orchestra performing", "hint": "school orchestra" },
+  { "id": 8, "src": "https://placehold.co/600x400.png", "alt": "Students collaborating on a project", "hint": "students project" }
+]

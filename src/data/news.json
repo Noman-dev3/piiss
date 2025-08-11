@@ -1,0 +1,39 @@
+
+[
+  {
+    "id": 1,
+    "title": "Annual Science Fair Winners Announced",
+    "date": "2023-10-26",
+    "category": "Academics",
+    "excerpt": "Our students showcased incredible innovation at this year's science fair. See the list of winners and their groundbreaking projects.",
+    "content": "<p>The Annual Science Fair at PIISS was a massive success, highlighting the incredible talent and innovative spirit of our students. Projects ranged from advanced robotics to sustainable energy solutions, impressing judges and visitors alike. We are proud to announce the winners:</p><ul><li><strong>1st Place:</strong> Aisha Khan (Grade 10) for her project on 'AI-Powered Water Conservation System'.</li><li><strong>2nd Place:</strong> Omar Ahmed (Grade 9) for his 'Vertical Farming in Urban Environments' model.</li><li><strong>3rd Place:</strong> Fatima Zahra (Grade 11) for her research on 'Bioplastics from Organic Waste'.</li></ul><p>Congratulations to all participants for their hard work and dedication. We look forward to seeing what you create next year!</p>",
+    "imageUrl": "https://placehold.co/600x400.png"
+  },
+  {
+    "id": 2,
+    "title": "PIISS Eagles Win Regional Soccer Championship",
+    "date": "2023-10-22",
+    "category": "Sports",
+    "excerpt": "A thrilling final match saw our Eagles clinch the title. Congratulations to the team and coaching staff on their hard work!",
+    "content": "<p>The PIISS Eagles have once again proven their mettle by winning the Regional Soccer Championship in a nail-biting final. The team displayed exceptional skill, teamwork, and sportsmanship throughout the tournament. The final goal, scored in the last minute of the game, secured a 2-1 victory.</p><p>Captain Ali Raza lifted the trophy, thanking the cheering crowd and the dedicated coaching staff. 'This win is for the entire school,' he said. 'We worked hard, and it paid off.' The school will hold a victory celebration for the team next week.</p>",
+    "imageUrl": "https://placehold.co/600x400.png"
+  },
+  {
+    "id": 3,
+    "title": "Upcoming Parent-Teacher Meetings",
+    "date": "2023-10-20",
+    "category": "Announcements",
+    "excerpt": "Parent-Teacher meetings for classes 9-12 will be held on November 4th and 5th. Please book your slots online.",
+    "content": "<p>We would like to remind all parents of students in grades 9 through 12 that the bi-annual Parent-Teacher Meetings are scheduled for November 4th and 5th, 2023. This is an important opportunity to discuss your child's academic progress, and social development with their teachers.</p><p>To ensure a smooth process, we have implemented an online booking system. Please visit the school portal to schedule your appointments with individual teachers. We encourage you to book your slots at your earliest convenience. We look forward to your active participation in your child's education.</p>",
+    "imageUrl": "https://placehold.co/600x400.png"
+  },
+  {
+    "id": 4,
+    "title": "Inter-School Debate Competition",
+    "date": "2023-09-15",
+    "category": "Events",
+    "excerpt": "PIISS is proud to host the annual inter-school debate competition. Sharpen your arguments and get ready to compete!",
+    "content": "<p>Get ready for a clash of wits and words as PIISS hosts the prestigious Annual Inter-School Debate Competition on October 5th. This year's topic is 'The Role of Artificial Intelligence in Future Education.' We invite all students to participate and showcase their public speaking and critical thinking skills. Registration is now open and will close on September 30th. Don't miss this opportunity to engage in stimulating discussions and win accolades for our school.</p>",
+    "imageUrl": "https://placehold.co/600x400.png"
+  }
+]
