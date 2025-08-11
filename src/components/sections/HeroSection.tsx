@@ -1,39 +1,53 @@
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import Image from 'next/image';
+import { Badge } from '@/components/ui/badge';
+import { Sparkles, GraduationCap, Users, Trophy, BookOpen, ChevronRight } from 'lucide-react';
+
+const StatCard = ({ icon, label }: { icon: React.ReactNode, label: string }) => (
+    <div className="glassmorphic rounded-2xl p-4 flex flex-col items-center justify-center text-center gap-2 text-white/80">
+        {icon}
+        <span className="text-sm font-medium">{label}</span>
+    </div>
+)
 
 export function HeroSection() {
   return (
-    <section className="relative bg-primary text-primary-foreground">
-      <div className="container mx-auto max-w-7xl px-4 py-20 md:py-32">
-        <div className="grid md:grid-cols-2 gap-8 items-center">
-          <div className="space-y-6 text-center md:text-left">
-            <h1 className="text-4xl md:text-6xl font-bold tracking-tighter">
-              Shaping Minds, Building Futures
+    <section className="relative bg-gradient-to-br from-primary via-purple-600 to-indigo-700 text-white overflow-hidden">
+        <div className="absolute -top-20 -left-20 w-80 h-80 bg-white/10 rounded-full opacity-50 glow"></div>
+        <div className="absolute -bottom-20 -right-10 w-96 h-96 bg-white/10 rounded-full opacity-50 glow delay-1000"></div>
+      
+      <div className="container mx-auto max-w-7xl px-4 py-20 md:py-32 relative z-10">
+        <div className='flex flex-col items-center text-center'>
+            <Badge variant="outline" className="glassmorphic border-none text-white backdrop-blur-md mb-6">
+                <Sparkles className="mr-2 h-4 w-4 text-yellow-300" />
+                Welcome to the Future of Education
+            </Badge>
+
+            <h1 className="text-4xl md:text-7xl font-extrabold tracking-tight drop-shadow-lg">
+              Greenfield
+              <br />
+              <span className='text-accent'>International School</span>
             </h1>
-            <p className="text-lg md:text-xl text-primary-foreground/80">
-              At PIISS, we provide a nurturing environment for students to excel academically, creatively, and personally.
+            <p className="mt-6 text-lg md:text-xl max-w-3xl text-white/80">
+              Nurturing young minds for a brighter future with world-class education and holistic development.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start">
-              <Button asChild size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90">
-                <Link href="/admissions">Apply Now</Link>
+            <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
+              <Button asChild size="lg" className="rounded-full bg-white/90 text-primary hover:bg-white font-semibold shadow-lg">
+                <Link href="/admissions">Explore Programs</Link>
               </Button>
-              <Button asChild size="lg" variant="outline" className="text-primary-foreground border-primary-foreground/50 hover:bg-primary-foreground/10">
-                <Link href="/about">Learn More</Link>
+              <Button asChild size="lg" variant="ghost" className="rounded-full text-white hover:bg-white/10">
+                <Link href="/contact">
+                    Admin Portal <ChevronRight className="ml-1" />
+                </Link>
               </Button>
             </div>
-          </div>
-          <div className="relative h-64 md:h-96 rounded-lg overflow-hidden shadow-2xl">
-             <Image 
-              src="https://placehold.co/600x400.png"
-              alt="Students learning in a classroom"
-              fill
-              priority
-              className="object-cover"
-              data-ai-hint="students classroom"
-             />
-             <div className="absolute inset-0 bg-primary/30"></div>
-          </div>
+        </div>
+
+        <div className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
+            <StatCard icon={<Users className="h-8 w-8 text-white/80"/>} label="Expert Faculty" />
+            <StatCard icon={<GraduationCap className="h-8 w-8 text-white/80"/>} label="Holistic Learning" />
+            <StatCard icon={<BookOpen className="h-8 w-8 text-white/80"/>} label="Modern Curriculum" />
+            <StatCard icon={<Trophy className="h-8 w-8 text-white/80"/>} label="Top Achievements" />
         </div>
       </div>
     </section>
