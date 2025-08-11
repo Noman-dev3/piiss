@@ -1,89 +1,75 @@
 'use server';
 
-import fs from 'fs/promises';
-import path from 'path';
+import { db } from './firebase';
+import { collection, getDocs, doc, getDoc } from 'firebase/firestore';
 import type { Teacher, Student, ReportCard, News, GalleryImage, Announcement, Topper, Testimonial, Event, FAQ } from '@/types';
 
-function parseCsv<T>(csv: string): T[] {
-  const lines = csv.trim().split('\n');
-  if (lines.length < 2) return [];
-  
-  const headers = lines[0].split(',').map(h => h.trim());
-  
-  return lines.slice(1).map(line => {
-    const values = line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || [];
-    const entry = {} as any;
-    headers.forEach((header, i) => {
-      let value = values[i] || '';
-      if (value.startsWith('"') && value.endsWith('"')) {
-        value = value.slice(1, -1);
-      }
-      entry[header] = value;
-    });
-    return entry as T;
-  });
-}
 
-const dataCache = new Map<string, any>();
-
-async function loadData<T>(fileName: string, parser?: (content: string) => T): Promise<T> {
-  if (process.env.NODE_ENV === 'development') {
-    dataCache.delete(fileName);
-  }
-
-  if (dataCache.has(fileName)) {
-    return dataCache.get(fileName);
-  }
-
-  const filePath = path.join(process.cwd(), 'src', 'data', fileName);
+// Helper function to fetch a collection and map to type
+async function fetchCollection<T>(collectionName: string): Promise<T[]> {
   try {
-    const content = await fs.readFile(filePath, 'utf-8');
-    const data = parser ? parser(content) : JSON.parse(content);
-    dataCache.set(fileName, data);
-    return data;
+    const snapshot = await getDocs(collection(db, collectionName));
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as unknown as T));
   } catch (error) {
-    console.error(`Failed to load data from ${fileName}:`, error);
-    throw new Error(`Could not load data from ${fileName}.`);
+    console.error(`Error fetching ${collectionName}:`, error);
+    return [];
   }
 }
 
-export const getTeachers = async () => loadData<Teacher[]>('teachers.csv', parseCsv);
-export const getStudents = async () => loadData<Student[]>('students.csv', parseCsv);
-export const getReportCards = async () => loadData<ReportCard[]>('report-cards.json');
-export const getNews = async () => loadData<News[]>('news.json');
-export const getGalleryImages = async () => loadData<GalleryImage[]>('gallery.json');
-export const getAnnouncements = async () => loadData<Announcement[]>('announcements.json');
-export const getToppers = async () => loadData<Topper[]>('toppers.json');
-export const getTestimonials = async () => loadData<Testimonial[]>('testimonials.json');
-export const getEvents = async () => loadData<Event[]>('events.json');
-export const getFaqs = async () => loadData<FAQ[]>('faq.json');
+// Helper function to fetch a single document
+async function fetchDocument<T>(collectionName: string, id: string): Promise<T | null> {
+    try {
+        const docRef = doc(db, collectionName, id);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+            return { id: docSnap.id, ...docSnap.data() } as unknown as T;
+        }
+        return null;
+    } catch (error) {
+        console.error(`Error fetching document ${id} from ${collectionName}:`, error);
+        return null;
+    }
+}
 
+export const getTeachers = async () => fetchCollection<Teacher>('teachers');
+export const getStudents = async () => fetchCollection<Student>('students');
+export const getReportCards = async () => fetchCollection<ReportCard>('report-cards');
+export const getNews = async () => fetchCollection<News>('news');
+export const getGalleryImages = async () => fetchCollection<GalleryImage>('gallery');
+export const getAnnouncements = async () => fetchCollection<Announcement[]>('announcements');
+export const getToppers = async () => fetchCollection<Topper>('toppers');
+export const getTestimonials = async () => fetchCollection<Testimonial>('testimonials');
+export const getEvents = async () => fetchCollection<Event>('events');
+export const getFaqs = async () => fetchCollection<FAQ>('faq');
+
+export const getSingleNews = async (id: string) => fetchDocument<News>('news', id);
+export const getSingleTeacher = async (id: string) => fetchDocument<Teacher>('teachers', id);
+
+
+// This remains for AI actions that need raw string data
 export const getRawData = async () => {
-  const [
-    siteSettings,
-    eventsData,
-    newsData,
-    teachersData,
-    faqData,
-    publicResultsMetadata,
-    announcementsData,
-  ] = await Promise.all([
-    fs.readFile(path.join(process.cwd(), 'src', 'data', 'site-settings.json'), 'utf-8'),
-    fs.readFile(path.join(process.cwd(), 'src', 'data', 'events.json'), 'utf-8'),
-    fs.readFile(path.join(process.cwd(), 'src', 'data', 'news.json'), 'utf-8'),
-    fs.readFile(path.join(process.cwd(), 'src', 'data', 'teachers.csv'), 'utf-8'),
-    fs.readFile(path.join(process.cwd(), 'src', 'data', 'faq.json'), 'utf-8'),
-    fs.readFile(path.join(process.cwd(), 'src', 'data', 'public-results-metadata.json'), 'utf-8'),
-    fs.readFile(path.join(process.cwd(), 'src', 'data', 'announcements.json'), 'utf-8'),
-  ]);
+    const [
+      teachers,
+      events,
+      news,
+      faq,
+      announcements,
+    ] = await Promise.all([
+      getTeachers(),
+      getEvents(),
+      getNews(),
+      getFaqs(),
+      getAnnouncements(),
+    ]);
 
-  return {
-    siteSettings,
-    eventsData,
-    newsData,
-    teachersData,
-    faqData,
-    publicResultsMetadata,
-    announcementsData,
-  };
+    // This is a simplified version. In a real app you might want more data.
+    return {
+      siteSettings: JSON.stringify({ fullName: "Pakistan Islamic International School System", tagline: "Shaping Minds, Building Futures" }),
+      eventsData: JSON.stringify(events),
+      newsData: JSON.stringify(news),
+      teachersData: JSON.stringify(teachers),
+      faqData: JSON.stringify(faq),
+      publicResultsMetadata: JSON.stringify({ summary: "Results can be checked via the results page."}),
+      announcementsData: JSON.stringify(announcements),
+    };
 };

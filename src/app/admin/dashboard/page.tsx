@@ -1,78 +1,83 @@
 'use client';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Activity, Users, FileText, MessageSquare } from "lucide-react";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Users, FileText, Newspaper, Image as ImageIcon } from "lucide-react";
+import { useEffect, useState } from 'react';
+import { db } from '@/lib/firebase';
+import { collection, getDocs } from 'firebase/firestore';
+import withAuth from '@/lib/withAuth';
 
-export default function DashboardPage() {
+function DashboardPage() {
+    const [stats, setStats] = useState({
+        teachers: 0,
+        news: 0,
+        gallery: 0,
+        events: 0,
+    });
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const [teachersSnap, newsSnap, gallerySnap, eventsSnap] = await Promise.all([
+                    getDocs(collection(db, 'teachers')),
+                    getDocs(collection(db, 'news')),
+                    getDocs(collection(db, 'gallery')),
+                    getDocs(collection(db, 'events')),
+                ]);
+                setStats({
+                    teachers: teachersSnap.size,
+                    news: newsSnap.size,
+                    gallery: gallerySnap.size,
+                    events: eventsSnap.size,
+                });
+            } catch (error) {
+                console.error("Error fetching dashboard data: ", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchData();
+    }, []);
+
+    const statCards = [
+        { title: 'Total Teachers', icon: Users, value: stats.teachers, key: 'teachers' },
+        { title: 'News Articles', icon: Newspaper, value: stats.news, key: 'news' },
+        { title: 'Gallery Images', icon: ImageIcon, value: stats.gallery, key: 'gallery' },
+        { title: 'Total Events', icon: FileText, value: stats.events, key: 'events' },
+    ];
+
     return (
-        <div className="flex-1 space-y-4 p-8 pt-6">
+        <>
             <div className="flex items-center justify-between space-y-2">
                 <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
             </div>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">
-                            Total Teachers
-                        </CardTitle>
-                        <Users className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">150</div>
-                        <p className="text-xs text-muted-foreground">
-                            +5 from last month
-                        </p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">
-                            Admissions
-                        </CardTitle>
-                        <FileText className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">+23</div>
-                        <p className="text-xs text-muted-foreground">
-                            +10 this month
-                        </p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Contact Inquiries</CardTitle>
-                        <MessageSquare className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">+57</div>
-                        <p className="text-xs text-muted-foreground">
-                            +19 this week
-                        </p>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">
-                            Recent Activity
-                        </CardTitle>
-                        <Activity className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">...</div>
-                        <p className="text-xs text-muted-foreground">
-                            Updates from the last hour
-                        </p>
-                    </CardContent>
-                </Card>
+                {statCards.map(card => (
+                    <Card key={card.key}>
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                            <CardTitle className="text-sm font-medium">
+                                {card.title}
+                            </CardTitle>
+                            <card.icon className="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">
+                                {loading ? '...' : card.value}
+                            </div>
+                        </CardContent>
+                    </Card>
+                ))}
             </div>
             <Card>
                 <CardHeader>
                     <CardTitle>Welcome to your Dashboard!</CardTitle>
-                    <CardDescription>From here you can manage all aspects of your school website.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <p>This is a placeholder for more detailed analytics and management tools. You can navigate using the sidebar.</p>
+                    <p>From here you can manage all aspects of your school website. Use the navigation bar above to manage content.</p>
                 </CardContent>
             </Card>
-        </div>
-    )
+        </>
+    );
 }
+
+export default withAuth(DashboardPage);

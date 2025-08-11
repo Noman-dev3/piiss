@@ -3,6 +3,8 @@
 import { z } from 'zod';
 import { smartSearch } from '@/ai/flows/smart-search';
 import { getRawData } from './data-loader';
+import { db } from './firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 const contactSchema = z.object({
   firstName: z.string().min(2, { message: "First name must be at least 2 characters." }),
@@ -24,7 +26,6 @@ export async function submitContactForm(
   formData: FormData
 ): Promise<FormState> {
   const rawData = Object.fromEntries(formData.entries());
-  // Handle case where select is not touched
   if (!rawData.subject) rawData.subject = '';
 
   const validatedFields = contactSchema.safeParse(rawData);
@@ -36,15 +37,17 @@ export async function submitContactForm(
       issues: validatedFields.error.issues.map(issue => issue.path.join('.') + ': ' + issue.message),
     };
   }
-
-  console.log("New Contact Form Submission:");
-  console.log("Name:", `${validatedFields.data.firstName} ${validatedFields.data.lastName}`);
-  console.log("Email:", validatedFields.data.email);
-  console.log("Phone:", validatedFields.data.phone);
-  console.log("Subject:", validatedFields.data.subject);
-  console.log("Message:", validatedFields.data.message);
   
-  return { message: "Thank you for your message! We will get back to you shortly." };
+  try {
+    await addDoc(collection(db, "contactSubmissions"), {
+      ...validatedFields.data,
+      submittedAt: serverTimestamp(),
+    });
+    return { message: "Thank you for your message! We will get back to you shortly." };
+  } catch (error) {
+    console.error("Error saving contact form submission: ", error);
+    return { message: "An error occurred while submitting the form. Please try again." };
+  }
 }
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
@@ -60,20 +63,13 @@ const admissionSchema = z.object({
   appliedClass: z.string().min(1, "Class is required."),
   previousSchool: z.string().optional(),
   comments: z.string().optional(),
-  supportingDocument: z
-    .any()
-    .refine((file) => !file || file.size === 0 || file.size <= MAX_FILE_SIZE, `File size should be less than 5MB.`)
-    .refine(
-      (file) => !file || file.size === 0 || ACCEPTED_FILE_TYPES.includes(file?.type),
-      "Only .jpg, .png, and .pdf files are accepted."
-    ).optional(),
+  supportingDocument: z.any().optional(),
 });
 
 export async function submitAdmissionForm(prevState: FormState, formData: FormData): Promise<FormState> {
   const validatedFields = admissionSchema.safeParse(Object.fromEntries(formData.entries()));
 
   if (!validatedFields.success) {
-    console.log(validatedFields.error.flatten().fieldErrors);
     return {
       message: "Please fix the errors below.",
       fields: Object.fromEntries(formData.entries()),
@@ -81,20 +77,24 @@ export async function submitAdmissionForm(prevState: FormState, formData: FormDa
     }
   }
 
-  const { applicantName, parentEmail, supportingDocument } = validatedFields.data;
+  const { applicantName, supportingDocument, ...restOfData } = validatedFields.data;
   
-  console.log("New Admission Form Submission for:", validatedFields.data);
+  // In a real app, you would handle file upload to Firebase Storage here.
+  // For now, we'll just save the form data without the file.
   
-  if (supportingDocument && supportingDocument.size > 0) {
-    console.log("Received document:", supportingDocument.name, "Size:", supportingDocument.size);
-    // In a real application, you would upload this file to Firebase Storage here.
-    // const fileBuffer = Buffer.from(await supportingDocument.arrayBuffer());
-    // ... upload logic ...
+  try {
+    await addDoc(collection(db, "admissionSubmissions"), {
+      applicantName,
+      ...restOfData,
+      submittedAt: serverTimestamp(),
+      // In a real scenario, you'd store the file URL from Storage here.
+      documentUrl: supportingDocument && supportingDocument.size > 0 ? supportingDocument.name : null,
+    });
+     return { message: `Thank you, ${applicantName}! Your admission form has been submitted successfully.` };
+  } catch (error) {
+     console.error("Error saving admission form submission: ", error);
+     return { message: "An error occurred while submitting the form. Please try again." };
   }
-
-  // Here you would save to Firebase DB, send emails, etc.
-
-  return { message: `Thank you, ${applicantName}! Your admission form has been submitted successfully.` };
 }
 
 

@@ -1,5 +1,26 @@
-import { redirect } from 'next/navigation';
+'use client';
+import { useAuth } from '@/hooks/use-auth';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
+import { Spinner } from '@/components/ui/spinner';
 
 export default function AdminPage() {
-  redirect('/admin/dashboard');
+  const { user, loading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading) {
+      if (user) {
+        router.replace('/admin/dashboard');
+      } else {
+        router.replace('/admin/login');
+      }
+    }
+  }, [user, loading, router]);
+
+  return (
+    <div className="flex h-screen items-center justify-center">
+      <Spinner size="large" />
+    </div>
+  );
 }
