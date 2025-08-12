@@ -12,7 +12,7 @@ import type { Teacher } from "@/types";
 import { useEffect, useState, useTransition } from "react";
 import { getTeachers } from "@/lib/data-loader";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { FileUp, Info, PlusCircle, Trash2 } from "lucide-react";
+import { FileUp, Info, Trash2 } from "lucide-react";
 import Link from "next/link";
 import {
   AlertDialog,
@@ -74,12 +74,6 @@ function TeachersPage() {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <h2 className="text-3xl font-bold tracking-tight">Manage Teachers</h2>
-                 <Button asChild>
-                    <Link href="/admin/teachers/new">
-                        <PlusCircle className="mr-2"/>
-                        Create New Teacher
-                    </Link>
-                </Button>
             </div>
 
             <Card>
