@@ -47,7 +47,7 @@ export function TeacherForm({ initialData }: TeacherFormProps) {
     defaultValues: initialData ? {
       ...initialData,
       salary: String(initialData.salary),
-      dateJoined: initialData.dateJoined || '', // Ensure dateJoined is not undefined
+      dateJoined: initialData.dateJoined || '',
     } : {
       name: '',
       teacherId: '',
@@ -57,7 +57,7 @@ export function TeacherForm({ initialData }: TeacherFormProps) {
       experience: '',
       department: '',
       contact: '',
-      dateJoined: '', // Provide a default empty string
+      dateJoined: '',
       salary: '',
       bio: '',
       imageUrl: '',
@@ -120,7 +120,7 @@ export function TeacherForm({ initialData }: TeacherFormProps) {
                 <FormItem><FormLabel>Contact</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
             )} />
             <FormField control={form.control} name="dateJoined" render={({ field }) => (
-                <FormItem><FormLabel>Date Joined</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>
+                <FormItem><FormLabel>Date Joined</FormLabel><FormControl><Input type="date" {...field} value={field.value || ''} /></FormControl><FormMessage /></FormItem>
             )} />
             <FormField control={form.control} name="salary" render={({ field }) => (
                 <FormItem><FormLabel>Salary</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
