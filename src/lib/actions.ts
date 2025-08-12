@@ -3,6 +3,7 @@
 
 import { z } from 'zod';
 import { smartSearch } from '@/ai/flows/smart-search';
+import { aiFAQAssistant } from '@/ai/flows/ai-faq-assistant';
 import { getRawData } from './data-loader';
 import { db, storage } from './firebase';
 import { ref, push, serverTimestamp, set, child, get, update, remove } from 'firebase/database';
@@ -165,6 +166,21 @@ export async function handleSearch(query: string): Promise<{ results?: string; e
   } catch (error) {
     console.error("Smart search failed:", error);
     return { error: 'An error occurred during the search. Please try again.' };
+  }
+}
+
+
+export async function askAIFAQAssistant(query: string): Promise<{ answer?: string; error?: string }> {
+  if (!query) {
+    return { error: 'Please provide a question.' };
+  }
+  try {
+    const rawData = await getRawData();
+    const result = await aiFAQAssistant({ query, ...rawData });
+    return { answer: result.answer };
+  } catch (error) {
+    console.error('FAQ Assistant failed:', error);
+    return { error: 'The AI assistant is currently unavailable. Please try again later.' };
   }
 }
 

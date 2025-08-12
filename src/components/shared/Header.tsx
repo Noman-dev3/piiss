@@ -27,17 +27,10 @@ import type { SiteSettings } from '@/types';
 
 const navLinks = [
   { href: '/', label: 'Home' },
-  { 
-    href: '/about', 
-    label: 'About',
-    dropdown: [
-        { href: '/about', label: 'About Us' },
-        { href: '/about#mission', label: 'Our Mission' },
-        { href: '/about#vision', label: 'Our Vision' },
-    ]
-  },
+  { href: '/about', label: 'About' },
   { href: '/admissions', label: 'Admissions' },
   { href: '/results', label: 'Results' },
+  { href: '/faq', label: 'FAQ' },
   { href: '/contact', label: 'Contact' },
 ];
 
