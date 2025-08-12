@@ -47,7 +47,7 @@ export function TeacherForm({ initialData }: TeacherFormProps) {
     defaultValues: initialData ? {
       ...initialData,
       salary: String(initialData.salary),
-      dateJoined: initialData.dateJoined || '',
+      dateJoined: initialData.dateJoined || new Date().toISOString().split('T')[0],
     } : {
       name: '',
       teacherId: '',
@@ -57,7 +57,7 @@ export function TeacherForm({ initialData }: TeacherFormProps) {
       experience: '',
       department: '',
       contact: '',
-      dateJoined: '',
+      dateJoined: new Date().toISOString().split('T')[0],
       salary: '',
       bio: '',
       imageUrl: '',
@@ -99,7 +99,7 @@ export function TeacherForm({ initialData }: TeacherFormProps) {
                 <FormItem><FormLabel>Full Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
             )} />
             <FormField control={form.control} name="teacherId" render={({ field }) => (
-                <FormItem><FormLabel>Teacher ID</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
+                <FormItem><FormLabel>Teacher ID</FormLabel><FormControl><Input {...field} disabled={isEditMode} /></FormControl><FormMessage /></FormItem>
             )} />
             <FormField control={form.control} name="subject" render={({ field }) => (
                 <FormItem><FormLabel>Subject</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
@@ -126,7 +126,7 @@ export function TeacherForm({ initialData }: TeacherFormProps) {
                 <FormItem><FormLabel>Salary</FormLabel><FormControl><Input type="number" {...field} /></FormControl><FormMessage /></FormItem>
             )} />
              <FormField control={form.control} name="imageUrl" render={({ field }) => (
-              <FormItem className="md:col-span-2">
+              <FormItem className="md:col-span-2 lg:col-span-3">
                 <FormLabel>Profile Photo URL</FormLabel>
                 <FormControl>
                     <Input type="url" placeholder="https://example.com/photo.png" {...field} />
