@@ -12,7 +12,7 @@ import type { Teacher } from "@/types";
 import { useEffect, useState, useTransition } from "react";
 import { getTeachers } from "@/lib/data-loader";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { FileUp, Info, PlusCircle, Pencil, Trash2 } from "lucide-react";
+import { FileUp, Info, PlusCircle, Trash2 } from "lucide-react";
 import Link from "next/link";
 import {
   AlertDialog,
@@ -85,7 +85,7 @@ function TeachersPage() {
             <Card>
                 <CardHeader>
                     <CardTitle>Current Teacher List</CardTitle>
-                    <CardDescription>View, edit, or delete teacher profiles.</CardDescription>
+                    <CardDescription>View, add, or delete teacher profiles.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <Table>
@@ -112,11 +112,6 @@ function TeachersPage() {
                                     <TableCell>{teacher.subject}</TableCell>
                                     <TableCell>{teacher.contact}</TableCell>
                                     <TableCell className="text-right">
-                                        <Button asChild variant="ghost" size="icon">
-                                            <Link href={`/admin/teachers/${teacher.id}/edit`}>
-                                                <Pencil className="h-4 w-4" />
-                                            </Link>
-                                        </Button>
                                         <AlertDialog>
                                             <AlertDialogTrigger asChild>
                                                 <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
@@ -153,14 +148,14 @@ function TeachersPage() {
              <Card>
                 <CardHeader>
                     <CardTitle>Upload Teacher Data via CSV</CardTitle>
-                    <CardDescription>Bulk upload or update the teacher list. Use 'teacherId' as the unique key.</CardDescription>
+                    <CardDescription>Bulk upload the teacher list. The system will generate a unique ID for each teacher.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <Alert>
                         <Info className="h-4 w-4" />
                         <AlertTitle>CSV Format</AlertTitle>
                         <AlertDescription>
-                             The CSV file must contain the following columns: `name`, `teacherId`, `contact`, `salary`, `dateJoined`, `subject`, `role`, `experience`, `department`, `qualification`, `bio`, and `imageUrl`. The `imageUrl` should be a publicly accessible URL.
+                             The CSV file must contain the following columns: `name`, `contact`, `salary`, `dateJoined`, `subject`, `role`, `experience`, `department`, `qualification`, `bio`, and `imageUrl`. The `imageUrl` should be a publicly accessible URL.
                         </AlertDescription>
                     </Alert>
                     <form action={handleFileUpload} className="space-y-4">
