@@ -47,6 +47,7 @@ export function TeacherForm({ initialData }: TeacherFormProps) {
     defaultValues: initialData ? {
       ...initialData,
       salary: String(initialData.salary),
+      dateJoined: initialData.dateJoined || '', // Ensure dateJoined is not undefined
     } : {
       name: '',
       teacherId: '',
@@ -56,7 +57,7 @@ export function TeacherForm({ initialData }: TeacherFormProps) {
       experience: '',
       department: '',
       contact: '',
-      dateJoined: '',
+      dateJoined: '', // Provide a default empty string
       salary: '',
       bio: '',
       imageUrl: '',
