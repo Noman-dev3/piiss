@@ -193,7 +193,43 @@ const parseCsv = <T>(fileContent: string): Promise<T[]> => {
     });
 }
 
-const fileToAction = async (formData: FormData, dbPath: string, idKey: string): Promise<UploadResult> => {
+export async function uploadTeachersCsv(formData: FormData): Promise<UploadResult> {
+    const file = formData.get('file') as File;
+    if (!file || file.size === 0) {
+        return { success: false, message: 'No file provided.' };
+    }
+
+    try {
+        const fileContent = await file.text();
+        const parsedData = await parseCsv<Omit<Teacher, 'id' | 'teacherId'>>(fileContent);
+        
+        const updates: Record<string, any> = {};
+        
+        parsedData.forEach((item) => {
+            const newTeacherRef = push(ref(db, 'teachers'));
+            const newId = newTeacherRef.key;
+            if (newId) {
+                updates[`teachers/${newId}`] = { ...item, id: newId, teacherId: newId };
+            }
+        });
+        
+        if (Object.keys(updates).length === 0) {
+            return { success: false, message: `No valid teacher data found in the CSV.` };
+        }
+
+        await update(ref(db), updates);
+
+        revalidatePath(`/admin/teachers`);
+
+        return { success: true, message: `${Object.keys(updates).length} teachers uploaded successfully!` };
+    } catch (error: any) {
+        console.error(`Error uploading teachers CSV:`, error);
+        return { success: false, message: error.message || 'An error occurred during upload.' };
+    }
+};
+
+
+export async function uploadStudentsCsv(formData: FormData): Promise<UploadResult> {
     const file = formData.get('file') as File;
     if (!file || file.size === 0) {
         return { success: false, message: 'No file provided.' };
@@ -206,36 +242,27 @@ const fileToAction = async (formData: FormData, dbPath: string, idKey: string): 
         const updates: Record<string, any> = {};
         
         parsedData.forEach((item: any) => {
-            const id = item[idKey]?.trim();
+            const id = item['rollNumber']?.trim();
             if (id) {
-                updates[`${dbPath}/${id}`] = { ...item, id };
+                updates[`students/${id}`] = { ...item, id };
             }
         });
         
         if (Object.keys(updates).length === 0) {
-            return { success: false, message: `CSV must contain a "${idKey}" column for each entry.` };
+            return { success: false, message: `CSV must contain a "rollNumber" column for each entry.` };
         }
 
         const dbRef = ref(db);
         await update(dbRef, updates);
 
-        revalidatePath(`/admin/${dbPath}`);
+        revalidatePath(`/admin/students`);
 
         return { success: true, message: 'Data uploaded successfully!' };
     } catch (error: any) {
-        console.error(`Error uploading to ${dbPath}:`, error);
+        console.error(`Error uploading to students:`, error);
         return { success: false, message: error.message || 'An error occurred during upload.' };
     }
 };
-
-export async function uploadTeachersCsv(formData: FormData): Promise<UploadResult> {
-    return fileToAction(formData, 'teachers', 'teacherId');
-}
-
-export async function uploadStudentsCsv(formData: FormData): Promise<UploadResult> {
-    return fileToAction(formData, 'students', 'rollNumber');
-}
-
 
 export async function uploadResultsJson(formData: FormData): Promise<UploadResult> {
     const file = formData.get('file') as File;
@@ -660,10 +687,10 @@ export async function deleteFaq(id: string): Promise<UploadResult> {
 }
 
 
-const teacherSchema = z.object({
+const teacherFormSchema = z.object({
   id: z.string().optional(),
+  teacherId: z.string().optional(),
   name: z.string().min(1, 'Name is required'),
-  teacherId: z.string().min(1, 'Teacher ID is required'),
   subject: z.string().min(1, 'Subject is required'),
   role: z.string().min(1, 'Role is required'),
   qualification: z.string().min(1, 'Qualification is required'),
@@ -676,38 +703,58 @@ const teacherSchema = z.object({
   imageUrl: z.string().url("Please provide a valid image URL."),
 });
 
-async function handleTeacher(formData: FormData, isUpdate: boolean): Promise<UploadResult> {
+export async function createTeacher(formData: FormData): Promise<UploadResult> {
     const rawData = Object.fromEntries(formData);
-    const validatedData = teacherSchema.safeParse(rawData);
+    const validatedData = teacherFormSchema.safeParse(rawData);
 
+    if (!validatedData.success) {
+        return { success: false, message: validatedData.error.errors.map(e => e.message).join(', ') };
+    }
+    
+    try {
+        const teachersRef = ref(db, 'teachers');
+        const newTeacherRef = push(teachersRef);
+        const newId = newTeacherRef.key;
+
+        if (!newId) {
+            throw new Error("Failed to generate a unique ID for the new teacher.");
+        }
+        
+        const dataToSave = { ...validatedData.data, id: newId, teacherId: newId };
+        
+        await set(newTeacherRef, dataToSave);
+        
+        revalidatePath('/teachers');
+        revalidatePath('/admin/teachers');
+        return { success: true, message: 'Teacher created successfully.' };
+    } catch (error: any) {
+        return { success: false, message: error.message || 'An error occurred.' };
+    }
+}
+
+export async function updateTeacher(formData: FormData): Promise<UploadResult> {
+    const rawData = Object.fromEntries(formData);
+    const validatedData = teacherFormSchema.safeParse(rawData);
+    
     if (!validatedData.success) {
         return { success: false, message: validatedData.error.errors.map(e => e.message).join(', ') };
     }
     
     const { id, ...data } = validatedData.data;
 
+    if (!id) {
+        return { success: false, message: "Teacher ID is missing for update."}
+    }
+
     try {
-        if (isUpdate && id) {
-            await set(ref(db, `teachers/${id}`), data);
-        } else {
-            await set(ref(db, `teachers/${data.teacherId}`), { ...data, id: data.teacherId });
-        }
+        await set(ref(db, `teachers/${id}`), data);
         
         revalidatePath('/teachers');
         revalidatePath('/admin/teachers');
-        const message = isUpdate ? 'Teacher updated successfully.' : 'Teacher created successfully.';
-        return { success: true, message };
+        return { success: true, message: 'Teacher updated successfully.' };
     } catch (error: any) {
         return { success: false, message: error.message || 'An error occurred.' };
     }
-}
-
-export async function createTeacher(formData: FormData): Promise<UploadResult> {
-    return handleTeacher(formData, false);
-}
-
-export async function updateTeacher(formData: FormData): Promise<UploadResult> {
-    return handleTeacher(formData, true);
 }
 
 export async function deleteTeacher(id: string): Promise<UploadResult> {

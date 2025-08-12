@@ -17,7 +17,7 @@ import { Textarea } from '@/components/ui/textarea';
 const formSchema = z.object({
   id: z.string().optional(),
   name: z.string().min(1, 'Name is required'),
-  teacherId: z.string().min(1, 'Teacher ID is required'),
+  teacherId: z.string().optional(), // No longer required for creation
   subject: z.string().min(1, 'Subject is required'),
   role: z.string().min(1, 'Role is required'),
   qualification: z.string().min(1, 'Qualification is required'),
@@ -50,7 +50,6 @@ export function TeacherForm({ initialData }: TeacherFormProps) {
       dateJoined: initialData.dateJoined || new Date().toISOString().split('T')[0],
     } : {
       name: '',
-      teacherId: '',
       subject: '',
       role: '',
       qualification: '',
@@ -68,7 +67,8 @@ export function TeacherForm({ initialData }: TeacherFormProps) {
     startTransition(async () => {
         const formData = new FormData();
         Object.keys(values).forEach(key => {
-            const value = values[key as keyof FormValues];
+            const valueKey = key as keyof FormValues;
+            const value = values[valueKey];
             if (value !== undefined && value !== null) {
                 formData.append(key, String(value));
             }
@@ -98,9 +98,11 @@ export function TeacherForm({ initialData }: TeacherFormProps) {
             <FormField control={form.control} name="name" render={({ field }) => (
                 <FormItem><FormLabel>Full Name</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
             )} />
-            <FormField control={form.control} name="teacherId" render={({ field }) => (
-                <FormItem><FormLabel>Teacher ID</FormLabel><FormControl><Input {...field} disabled={isEditMode} /></FormControl><FormMessage /></FormItem>
-            )} />
+            {isEditMode && initialData?.teacherId && (
+              <FormField control={form.control} name="teacherId" render={({ field }) => (
+                  <FormItem><FormLabel>Teacher ID</FormLabel><FormControl><Input {...field} disabled /></FormControl><FormMessage /></FormItem>
+              )} />
+            )}
             <FormField control={form.control} name="subject" render={({ field }) => (
                 <FormItem><FormLabel>Subject</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>
             )} />
